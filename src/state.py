@@ -22,12 +22,18 @@ class Card:
         self.name = name
         self.count = count
         self.exchange = {}
+        self.max = 0
         # TODO: Turn exchange into map self.exchange
         Card.cards.append(self)
 
     def __getitem__(self, item):
         if not isinstance(item, int):
             raise TypeError("Can only harvest a integer number of beans")
+        if item <= 0:
+            return 0
+        if item > self.max:
+            return self.exchange[self.max]
+        return self.exchange[item]
 
 
 class Game:
