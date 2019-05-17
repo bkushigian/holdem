@@ -15,8 +15,8 @@ class Card:
         """
         Create a new singleton card
         :param name: name of the card
-        :param exchange: list of tuples representing the exchange rates, in form
-                         (beans, coins)
+        :param exchange: length 4 list representing the number of harvested
+            beans needed to get  1, 2, 3, or 4 coins respectively
         :param count: number of cards in the deck
         """
         self.name = name
@@ -32,4 +32,7 @@ class Game:
         self.players = [Player(), Player()]
         self.deck = []     # TODO
         self.discard = []
+
+
+Card(name="Coffee Bean", exchange=(4, 7, 10, 12), count=24)
 
