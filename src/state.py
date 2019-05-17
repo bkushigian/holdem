@@ -25,6 +25,10 @@ class Card:
         # TODO: Turn exchange into map self.exchange
         Card.cards.append(self)
 
+    def __getitem__(self, item):
+        if not isinstance(item, int):
+            raise TypeError("Can only harvest a integer number of beans")
+
 
 class Game:
     def __init__(self):
