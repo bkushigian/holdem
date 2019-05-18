@@ -25,7 +25,23 @@ class Card:
         self.count = count
         self.exchange = {}
         self.max = 0
-        # TODO: Turn exchange into map self.exchange
+
+        # Turn exchange into map self.exchangegit
+        curr_num_coins = 0
+        curr_num_cards = 0
+        for i in range(4):
+            if exchange[i] is None:
+                continue
+            for j in range(curr_num_cards, exchange[i]):
+                self.exchange[j] = curr_num_coins
+            curr_num_coins += 1
+            curr_num_cards = exchange[i]
+            if i > 0 and exchange[i-1] is None:
+                curr_num_coins += 1
+        self.exchange[curr_num_cards] = curr_num_coins
+        self.max = curr_num_cards
+
+
         Card.cards.append(self)
 
     def __getitem__(self, item):
