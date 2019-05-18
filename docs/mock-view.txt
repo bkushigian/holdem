@@ -1,0 +1,52 @@
+GAME INFORMATION SECTION (Whose turn, which phase, etc)
+
+
+--------------------------------------------------------------------------------
+Player 1: Sally
+HAND: 5     COINS: 8
+FIELD: 2x Stink Beans, EMPTY, EMPTY
+
+         +--------+  +---------+  Offering
+         |        |  |         |  1. 3x Soy Beans
+         |  DECK  |  | DISCARD |  2. 1x Black-eyed Bean
+         |  (78)  |  |   (7)   |
+         |        |  |         |
+         +--------+  +---------+
+
+
+[*] Player 2: John
+
+FIELD: 3x Black-eyed Beans, 2x Black-eyed Beans, 4x Black-eyed Beans
+
+HAND (4):   COINS: 7
+1. Stink Bean
+2. Black-eyed Bean
+3. Stink Bean
+4. Soy Bean
+
+>>>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Data needed:
+
+1. Player Data: represent as a dict
+
+{
+ 'name' : 'Sally',
+ 'hand' : 5,
+ 'field' : [(2, "Stink Bean"), None, None],
+ 'coins' : 8
+}
+
+Player data is sent as a list of the form [Player1, Player2, ...]
+
+2. Current Player: represented as an int index in the the player list in (1)
+3. Deck Size: an int
+4. Discard Pile: an int
+5. Offering: A list of quantity, card name tuples of length at most 3
+
+    [(3, "Soy Bean"), (1, "Black-eyed Bean")]
+
+6. Current Player Hand: represented as a list of card names:
+
+    ["Stink Bean", "Black-eyed Bean", "Stink Bean", "Soy Bean"]
