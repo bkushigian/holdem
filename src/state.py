@@ -40,8 +40,6 @@ class Card:
                 curr_num_coins += 1
         self.exchange[curr_num_cards] = curr_num_coins
         self.max = curr_num_cards
-
-
         Card.cards.append(self)
 
     def __getitem__(self, item):
@@ -71,7 +69,7 @@ class Game:
     def __init__(self, players):
         self.num_players = len(players)
         self.players = players  # List of players in order of turns
-        self.deck = []     # TODO: initialize a new shuffled deck
+        self.deck = self.new_deck()
         self.discard = []
         self.offering = []
         self.turn = 0
@@ -88,5 +86,28 @@ class Game:
 
         :return:
         """
+        import random as r
+
+        deck = [card for card in Card.cards for _ in range(card.count)
+                if card.name != 'Garden Bean' and card.name != 'Cocoa Bean']
+        r.shuffle(deck)
+        return deck
+
+
+class Phase:
+    def __init__(self, game):
+        self.game = game
+        self.next = None
+
+    def update(self, **kwargs):
         pass
+
+
+class PhaseI(Phase):
+    def __init__(self, game):
+        super.__init__(game)
+
+    def update(self, **kwargs):
+        pass
+
 
