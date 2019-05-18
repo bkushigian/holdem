@@ -4,8 +4,10 @@ All things statey
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, name):
         self.fields = [[], [], []]
+        self.name = name
+        self.coins = 0
 
 
 class Card:
@@ -36,14 +38,6 @@ class Card:
         return self.exchange[item]
 
 
-class Game:
-    def __init__(self):
-        self.num_players = 2
-        self.players = [Player(), Player()]
-        self.deck = []     # TODO
-        self.discard = []
-
-
 Card(name="Coffee Bean",        exchange=(4,    7, 10, 12),    count=24)
 Card(name="Wax Bean",           exchange=(4,    7,  9, 11),    count=22)
 Card(name="Blue Bean",          exchange=(4,    6,  8, 10),    count=20)
@@ -55,3 +49,28 @@ Card(name="Black-eyed Bean",    exchange=(2,    4,  5,  6),    count=10)
 Card(name="Red Bean",           exchange=(2,    3,  4,  5),    count=8)
 Card(name="Garden Bean",        exchange=(None, 2,  3,  None), count=6)
 Card(name="Cocoa Bean",         exchange=(None, 2,  3,  4),    count=4)
+
+
+class Game:
+    def __init__(self, players):
+        self.num_players = len(players)
+        self.players = players  # List of players in order of turns
+        self.deck = []     # TODO: initialize a new shuffled deck
+        self.discard = []
+        self.offering = []
+        self.turn = 0
+        self.phase = 0
+
+    def new_deck(self):
+        """
+        Creates a new shuffled deck with the appropriate cards and returns it.
+        A deck is represented as a list of `Card`s which are accessible from the
+        `Card` class via `Card.cards`.
+
+        For two player (the only version we are implementing currently) the
+        Garden and Cocoa beans are removed.
+
+        :return:
+        """
+        pass
+
