@@ -1,3 +1,33 @@
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+                                 WELCOME TO BEANO!
+
+    What's your name, Farmer? JOHN
+    Well howdy, John!
+
+    It's good to see you again! It sure has bean awhile.
+
+    Thanks for holding tight...we are waiting for your opponent to get ready.
+
+    In the mean time, if you'd like to review the rules, go ahead and hit 'R'.
+
+    You may hit [ENTER] at any time to continue to the game. If you ever need
+    a refresher, just enter '?' into the prompt and we'll take you to the
+    help menu!
+
+
+
+
+
+
+
+
+
+
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 GAME INFORMATION SECTION (Whose turn, which phase, etc)
 
 
