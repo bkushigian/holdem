@@ -80,6 +80,7 @@ class Game:
 
         self.phase = PhaseI(self)
         self.phase.create_phases()
+        self.phase_game_over = PhaseGameOver(self)
         self.phase = self.phase.next    # WANT THIS? bc no phase1 first turn
 
         for _ in range(5):
@@ -105,8 +106,16 @@ class Game:
         return deck
 
     def game_over(self):
-        # TODO: write game_over method
-        pass
+        self.phase = self.phase_game_over
+        for player in self.players:
+            for field in player.fields:
+                if field is None:
+                    continue
+                card, number = field
+                coins = card[number]
+                player.coins += coins
+                self.discard.extend([card] * (number - coins))
+            player.fields = [None] * len(player.fields)
 
     def deal_to_player(self, player):
         if not self.deck:
@@ -157,10 +166,35 @@ class Phase:
         self.game.discard.extend([card] * (number - coins))
         player.fields[f] = None
 
+    def plant_from_offering(self, idxs):
+        game = self.game
+        for i in idxs:
+            if game.offering[i] is None:
+                self.error(1, 'nothing at that offering index')
+                break
+            card, number = game.offering[i]
+            planting_field = None
+            fields = game.players[game.curr_player].fields
 
-# want to discard all that are left
-# have fixed offering list indices, with maybe None if have been planted
-# assume want to plant all of something (have to change harvest to reflect that number may be > max?)
+            for j, f in enumerate(fields):
+                # If haven't found a place to plant yet and field is empty, pick this field but keep looking
+                if planting_field is None and f is None:
+                    planting_field = j
+                # If field contains same bean type, pick this field
+                elif f is not None and f[0] == card:
+                    planting_field = j
+                    break
+            if planting_field is None:
+                self.error(1, 'nowhere to plant: need to harvest first')
+                break
+            if fields[planting_field] is None:
+                fields[planting_field] = (card, number)
+            else:
+                fields[planting_field] = (card, fields[planting_field][1] + number)
+            game.offering[i] = None
+
+
+# assumes want to plant all of something
 # want to add separate discard action in future?
 class PhaseI(Phase):
     def __init__(self, game):
@@ -176,10 +210,11 @@ class PhaseI(Phase):
         action = kwargs['action']
         args = kwargs['args']
 
+        # At end of phase, discard all of offering that hasn't been planted
         if action == 'end_phase':
             for o in game.offering:
                 if o is not None:
-                    card, number = o    # is this wrong?
+                    card, number = o
                     game.discard.extend([card] * number)
             game.offering = [None, None, None]
             game.phase = self.next
@@ -187,34 +222,16 @@ class PhaseI(Phase):
         elif action == 'harvest':   # implement bean protection rule?
             self.harvest(args)
 
+        # Plant from offering into field
         elif action == 'plant':
             if not isinstance(args, list) or any(arg not in range(len(game.offering)) for arg in args):
                 self.error(1, 'wrong input')
                 return
-            for i in args:
-                if game.offering[i] is None:
-                    self.error(1, 'nothing at that offering index')
-                    return
-                card, number = game.offering[i]
-                planting_field = None
-                fields = game.players[game.curr_player].fields
-
-                for j, f in enumerate(fields):
-                    if planting_field is None and f is None:    # add comment?
-                        planting_field = j
-                    elif f is not None and f[0] == card:        # add comment?
-                        planting_field = j
-                if planting_field is None:
-                    self.error(1, 'nowhere to plant: need to harvest first')
-                    return
-                if fields[planting_field] is None:
-                    fields[planting_field] = (card, number)
-                else:
-                    fields[planting_field] = (card, fields[planting_field][1] + number)
-                game.offering[i] = None
+            self.plant_from_offering(args)
 
         else:
             self.error(1, 'invalid action')
+
 
 class PhaseII(Phase):
     def __init__(self, game):
@@ -243,6 +260,7 @@ class PhaseII(Phase):
         elif action == 'harvest':
             self.harvest(args)
 
+        # Plant from hand to field
         elif action == 'plant':
             if self.num_planted >= 2:
                 self.error(1, 'already planted max number of beans')
@@ -260,10 +278,13 @@ class PhaseII(Phase):
             planting_field = None
             fields = game.players[game.curr_player].fields
             for j, f in enumerate(fields):
-                if planting_field is None and f is None:    # add comment?
+                # If haven't found a place to plant yet and field is empty, pick this field but keep looking
+                if planting_field is None and f is None:
                     planting_field = j
-                elif f is not None and f[0] == card:        # add comment?
+                # If field contains same bean type, pick this field
+                elif f is not None and f[0] == card:
                     planting_field = j
+                    break
             if planting_field is None:
                 self.error(1, 'nowhere to plant: need to harvest first')
                 return
@@ -273,6 +294,7 @@ class PhaseII(Phase):
                 fields[planting_field] = (card, fields[planting_field][1] + 1)
             self.num_planted += 1
 
+        # Discard from hand
         elif action == 'discard':
             if self.num_planted < 1:
                 self.error(1, 'need to plant at least one bean before discarding')
@@ -298,6 +320,7 @@ class PhaseIII(Phase):
         super().__init__(game)
         self.next = PhaseIV(game)
         self.done_drawing = False
+        self.game_over = False      # move to game?
 
     def update(self, **kwargs):
         game = self.game
@@ -310,84 +333,72 @@ class PhaseIII(Phase):
             if not self.done_drawing:
                 self.error(1, 'must draw before ending phase')
                 return
+            if self.game_over:
+                game.game_over()
+                return
             self.done_drawing = False
             game.phase = self.next
 
         elif action == 'harvest':
             self.harvest(args)
 
+        # Draw from deck into offering
         elif action == 'draw':
             if self.done_drawing:
                 self.error(1, 'already drew')
                 return
             for _ in range(3):
-                if len(game.deck) > 0:          # change to if game.deck?
+                if game.deck:
                     card = game.deck.pop()
                     index = None
                     for i, o in enumerate(game.offering):
-                        if index is None and o is None:     # add comment?
+                        # If haven't found a place to put card and this spot is empty, pick this spot but keep looking
+                        if index is None and o is None:
                             index = i
-                        if o is not None and o[0] == card:  # add comment?
+                        # If this spot contains same bean type, pick this spot
+                        if o is not None and o[0] == card:
                             index = i
+                            break
                     if game.offering[index] is None:
                         game.offering[index] = (card, 1)
                     else:
                         game.offering[index] = (card, game.offering[index][1] + 1)
                 else:
-                    game.game_over()
-
+                    # Stop drawing, but can continue planting, etc., until end of phase
+                    self.game_over = True
+                    break
 
             # TODO: Continue code review!!!!
-            check_next_discard = True
+            # While the top card in discard pile matches a card in the offering, add it to the offering.
+            check_next_discard = True   # True while want to continue checking the top card in discard pile
             while check_next_discard:
                 check_next_discard = False
                 next_discard = game.discard[-1]
-                for i in range(len(game.offering)):
+                for i, o in enumerate(game.offering):
                     # don't need to test check_next_discard below? trying to avoid adding to more than one pile, but maybe that wouldn't happen
-                    if not check_next_discard and game.offering[i] is not None and game.offering[i][0] == next_discard:
-                        game.offering[i] = (game.offering[i][0], game.offering[i][1] + 1)
+                    if not check_next_discard and o is not None and o[0] == next_discard:
+                        game.offering[i] = (o[0], o[1] + 1)
                         game.discard.pop()
                         check_next_discard = True
 
             self.done_drawing = True
 
+        # Plant from offering into field
         elif action == 'plant':
             if not self.done_drawing:
                 self.error(1, 'need to draw 3 first')
                 return
-
-            # copied from phase1
             if not isinstance(args, list) or any(arg not in range(len(game.offering)) for arg in args):
                 self.error(1, 'wrong input')
                 return
-            for i in args:
-                if game.offering[i] is None:
-                    self.error(1, 'nothing at that offering index')
-                    return
-                card, number = game.offering[i]
-                planting_field = None
-                fields = game.players[game.curr_player].fields
-                for j in range(len(fields)):
-                    if planting_field is None and fields[j] is None:
-                        planting_field = j
-                    elif fields[j] is not None and fields[j][0] == card:
-                        planting_field = j
-                if planting_field is None:
-                    self.error(1, 'nowhere to plant: need to harvest first')
-                    return
-                if fields[planting_field] is None:
-                    fields[planting_field] = (card, number)
-                else:
-                    fields[planting_field] = (card, fields[planting_field][1] + number)
-                game.offering[i] = None
-
+            self.plant_from_offering(args)
         else:
             self.error(1, 'invalid action')
 
 
 class PhaseIV(Phase):
     def __init__(self, game):
-        super().__init__(game)  # added (). What about setting next?
+        super().__init__(game)
         self.next = self.game.phase
         self.done_drawing = False
 
@@ -402,6 +413,7 @@ class PhaseIV(Phase):
             if not self.done_drawing:
                 self.error(1, 'need to draw before ending phase')
                 return
+            self.done_drawing = False
             game.curr_player = (game.curr_player + 1) % game.num_players
             game.phase = self.next
 
@@ -413,7 +425,7 @@ class PhaseIV(Phase):
                 self.error(1, 'already drew')
                 return
             for _ in range(2):
-                if len(game.deck) > 0:  # if game.deck?
+                if game.deck > 0:  # if game.deck?
                     game.players[game.curr_player].insert(0, game.deck.pop())
                 else:
                     game.game_over()
@@ -424,12 +436,11 @@ class PhaseIV(Phase):
 
 class PhaseGameOver(Phase):
     def __init__(self, game):
-        super().__init__(game)  # added (). What about setting next?
+        super().__init__(game)
         self.next = None
 
-
     def update(self, **kwargs):
-        self.error(0, '')   # want to use error method?
+        self.error(0, '')   # want to use error method or no?
 
         # TODO: write update method
         if action == 'dummy':
