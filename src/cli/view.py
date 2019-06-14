@@ -65,4 +65,3 @@ class Formatter:
         data.append(deck_string())
         data.append(owner_string())
 
-
