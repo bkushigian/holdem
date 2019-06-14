@@ -2,7 +2,8 @@ class ViewServerMixin:
     """ Mixin for the server side of the View. """
 
     def update(self, game_state):
-        """Update the game state"""
+        """Update the game state and send to the client if the client is not
+        this object."""
         pass
 
 class ViewClientMixin:

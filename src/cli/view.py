@@ -21,6 +21,11 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):
     def render(self, game_state):
         pass
 
+class Formatter:
+    def __init__(self, view):
+        self.view = view
+        self.game_state = view.game_state
+
     def other_player_string(self, player):
         """
         Print a string representation of the player without any private info,
@@ -30,4 +35,34 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):
                 player.name,
                 player.hand_size,
                 player.fields)
+
+    def offering_string(self):
+        """
+        Print a string representation of the offering
+        """
+        return "OFFERING: {}".format(self.game_state.offering)
+
+    def discard_string(self):
+        d = self.game_state.discard
+        return "DISCARD: {}, ...".format(d[0:min(len(d), 3)])
+
+    def deck_string(self):
+        return "DECK: {} CARDS".format(self.game_state.deck)
+
+    def owner_string(self):
+        return "YOUR HAND:{}\nYOUR FIELDS:{}".format(
+                self.game_state.hand,
+                self.game_state.players[self.game_state.owner].fields)
+
+    def __str__(self):
+        gs = self.game_state
+        data = []
+        for i, p in gs:
+            if i == gs.current_player: continue
+            data.append(self.other_player_string(p))
+        data.append(offering_string())
+        data.append(discard_string())
+        data.append(deck_string())
+        data.append(owner_string())
+
 
