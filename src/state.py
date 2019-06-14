@@ -196,6 +196,7 @@ class Phase:
 
 # assumes want to plant all of something
 # want to add separate discard action in future?
+# want harvest to take a list instead of single?
 class PhaseI(Phase):
     def __init__(self, game):
         super().__init__(game)
@@ -246,6 +247,7 @@ class PhaseII(Phase):
             return
         self.num_planted = 0
         self.done_discarding = False
+        self.game.phase = self.next
 
     def update(self, **kwargs):
         game = self.game
