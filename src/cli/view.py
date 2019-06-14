@@ -2,8 +2,11 @@ from view import (ViewServerMixin, ViewClientMixin,
          ViewGameState, ViewPlayer)
 
 class ViewCLI(ViewServerMixin, ViewClientMixin):
-    def __init__(self, owner):
+    def __init__(self, owner, formatter=None):
         self.game_state = ViewGameState(owner=owner)
+        self.formatter = formatter
+        if formatter is None:
+            self.formatter = Formatter()
 
     def setup(self, players, current_player, hand, deck_size, offering, discard):
         gs = self.game_state
@@ -19,7 +22,7 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):
         pass
 
     def render(self, game_state):
-        pass
+        print(self.formatter)
 
 class Formatter:
     def __init__(self, view):
@@ -65,3 +68,4 @@ class Formatter:
         data.append(deck_string())
         data.append(owner_string())
 
+        return '\n\n'.join(data)
