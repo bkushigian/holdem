@@ -13,6 +13,7 @@ class Player:
 
 class Card:
     cards = []
+    name_to_card = {}
 
     def __init__(self, name, exchange, count):
         """
@@ -42,6 +43,7 @@ class Card:
         self.exchange[curr_num_cards] = curr_num_coins
         self.max = curr_num_cards
         Card.cards.append(self)
+        Cards.name_to_card[self.name] = self
 
     def __getitem__(self, item): # HUHHHH???
         if not isinstance(item, int):
