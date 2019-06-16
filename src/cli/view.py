@@ -2,8 +2,12 @@ from view import (ViewServerMixin, ViewClientMixin,
          ViewGameState, ViewPlayer)
 
 class ViewCLI(ViewServerMixin, ViewClientMixin):
-    def __init__(self, owner, formatter=None):
-        self.game_state = ViewGameState(owner=owner)
+    """
+        A simple test view through a CLI. There is only a single CLI built for
+        all players.
+    """
+    def __init__(self, formatter=None):
+        self.game_state = ViewGameState()
         self.formatter = formatter
         if formatter is None:
             self.formatter = Formatter()
@@ -22,7 +26,7 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):
         pass
 
     def render(self, game_state):
-        print(self.formatter)
+        print(str(self.formatter))
 
 class Formatter:
     def __init__(self, view):
@@ -55,7 +59,7 @@ class Formatter:
     def owner_string(self):
         return "YOUR HAND:{}\nYOUR FIELDS:{}".format(
                 self.game_state.hand,
-                self.game_state.players[self.game_state.owner].fields)
+                self.game_state.players[self.game_state.owner()].fields)
 
     def __str__(self):
         gs = self.game_state

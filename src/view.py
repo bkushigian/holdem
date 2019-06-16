@@ -61,6 +61,17 @@ class ViewGameState:
         if other.discard is not None:
             self.discard = other.discard
 
+    @staticmethod
+    def from_game_state(self, game_state, owner):
+        hand = game_state.players[owner].hand
+        return ViewGameState(owner=owner,
+                    players=game_state.players,
+                    current_player=game_state.current_player,
+                    hand=hand,
+                    deck_size=len(game_state.deck),
+                    offering=game_state.offering,
+                    discard=game_state.discard)
+
 class ViewPlayer:
     def __init__(self, name, hand_size, fields):
         """
