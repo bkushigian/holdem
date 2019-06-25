@@ -119,7 +119,7 @@ class Game:
                 self.discard.extend([card] * (number - coins))
             player.fields = [None] * len(player.fields)
 
-    def deal_to_player(self, player):
+    def deal_to_player(self, player):   # this is only used at start of game. can I change this/phase4 so it can be reused? complicated by gave_over
         if not self.deck:
             self.error(1, "Deal from empty deck")
             return False
@@ -276,7 +276,7 @@ class PhaseII(Phase):
             if not hand:
                 self.error(1, 'no cards in hand to plant')
                 return
-            card = hand.pop()
+            card = hand.pop()   # append again later if no room in fields
 
             # modified from phase 1
             planting_field = None
@@ -290,6 +290,7 @@ class PhaseII(Phase):
                     planting_field = j
                     break
             if planting_field is None:
+                hand.append(card)
                 self.error(1, 'nowhere to plant: need to harvest first')
                 return
             if fields[planting_field] is None:
@@ -376,6 +377,8 @@ class PhaseIII(Phase):
             # While the top card in discard pile matches a card in the offering, add it to the offering.
             check_next_discard = True   # True while want to continue checking the top card in discard pile
             while check_next_discard:
+                if not game.discard:
+                    break
                 check_next_discard = False
                 next_discard = game.discard[-1]
                 for i, o in enumerate(game.offering):
@@ -396,6 +399,7 @@ class PhaseIII(Phase):
                 self.error(1, 'wrong input')
                 return
             self.plant_from_offering(args)
+
         else:
             self.error(1, 'invalid action')
 
@@ -429,10 +433,12 @@ class PhaseIV(Phase):
                 self.error(1, 'already drew')
                 return
             for _ in range(2):
-                if game.deck > 0:  # if game.deck?
-                    game.players[game.curr_player].insert(0, game.deck.pop())
+                if game.deck:
+                    game.players[game.curr_player].hand.insert(0, game.deck.pop())
+
                 else:
-                    game.game_over()
+                    game.game_over()    # ??? does this get screwed up b/c in for loop?
+            self.done_drawing = True    # does this run if reach game over above?
 
         else:
             self.error(1, 'invalid action')
@@ -449,5 +455,6 @@ class PhaseGameOver(Phase):
         # TODO: write update method
         if action == 'dummy':
             pass
+
         else:
             self.error(1, 'invalid action')
