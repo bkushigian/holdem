@@ -47,9 +47,10 @@ class Formatter:
         Print a string representation of the player without any private info,
         such as cards in hand.
         """
-        return """PLAYER:{:<20}     HAND:{:>2} CARDS\nFIELDS:{}""".format(
+        return """PLAYER:{:<20}     HAND:{:>2} CARDS    COINS:{:>2}\nFIELDS:{}""".format(
                 player.name,
                 player.hand_size,
+                player.coins,
                 player.fields)
 
     def offering_string(self):
@@ -60,15 +61,16 @@ class Formatter:
 
     def discard_string(self):
         d = self.game_state.discard
-        return "DISCARD: {}, ...".format(d[-min(len(d), 3):])       # discard top is on right end?
+        return "DISCARD: ..., {}".format(d[-min(len(d), 3):])       # discard top is on right end?
 
     def deck_string(self):
         return "DECK: {} CARDS".format(self.game_state.deck_size)
 
     def owner_string(self):
-        return "YOUR HAND:{}\nYOUR FIELDS:{}".format(
+        return "YOUR HAND:{}\nYOUR FIELDS:{}\nYOUR COINS:{}".format(
                 self.game_state.hand,
-                self.game_state.players[self.game_state.owner].fields)
+                self.game_state.players[self.game_state.owner].fields,
+                self.game_state.players[self.game_state.owner].coins)
 
     def __str__(self):
         gs = self.game_state

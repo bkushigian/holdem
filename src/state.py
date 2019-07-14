@@ -55,10 +55,10 @@ class Card:
         return self.exchange[item]
 
     def __str__(self):
-        return self.name
+        return self.name[:-5]
 
     def __repr__(self):
-        return self.name
+        return self.name[:-5]
 
 
 Card(name="Coffee Bean",        exchange=(4,    7, 10, 12),    count=24)

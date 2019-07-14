@@ -43,12 +43,35 @@ class TestModel(TestCase):
         self.assertEqual(p2_other_hand, 3)
 
     def test_model_draw_to_offering(self):
+        # specifically, tests the CLI view
         m = self.new_game()
         m.game.phase = m.game.phase.next
-        m.game.deck[-3:] = [Card.cards[0], Card.cards[1], Card.cards[2]]
+        m.game.deck[-3:] = [Card.cards[6], Card.cards[6], Card.cards[6]]
         d = {'action': 'draw', 'args': None}
         m.game.phase.update(**d)
         for view in m.views:
             print(view.game_state.owner)
+            view.render()    # change to offering is visible (because the game_state has a reference to the offering) but not change to deck size.
+        m.update_views()
+        for view in m.views:
+            print(view.game_state.owner)
             view.render()
-
+        d = {'action': 'plant', 'args': [0]}
+        m.game.phase.update(**d)
+        m.update_views()
+        for view in m.views:
+            print(view.game_state.owner)
+            view.render()
+        d = {'action': 'harvest', 'args': (0, 0)}
+        m.game.phase.update(**d)
+        m.update_views()
+        for view in m.views:
+            print(view.game_state.owner)
+            view.render()
+        m.game.phase = m.game.phase.next
+        d = {'action': 'draw', 'args': None}
+        m.game.phase.update(**d)
+        m.update_views()
+        for view in m.views:
+            print(view.game_state.owner)
+            view.render()
