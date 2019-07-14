@@ -1,16 +1,25 @@
 from view import (ViewServerMixin, ViewClientMixin,
          ViewGameState, ViewPlayer)
 
-class ViewCLI(ViewServerMixin, ViewClientMixin):
+
+class ViewCLI(ViewServerMixin, ViewClientMixin):    # ViewServerMixin takes a game_state, not owner
     """
         A simple test view through a CLI. There is only a single CLI built for
         all players.
     """
-    def __init__(self, formatter=None):
-        self.game_state = ViewGameState()
+    """
+    def __init__(self, owner, formatter=None):  # added owner (not sure)
+        self.game_state = ViewGameState(owner)   # why no owner arg?
         self.formatter = formatter
         if formatter is None:
-            self.formatter = Formatter()
+            self.formatter = Formatter(self)
+    """
+
+    def __init__(self, game_state, formatter=None):  # added owner (not sure). need owner?
+        self.game_state = game_state  # why no owner arg?
+        self.formatter = formatter
+        if formatter is None:
+            self.formatter = Formatter(self)
 
     def setup(self, players, current_player, hand, deck_size, offering, discard):
         gs = self.game_state
@@ -25,11 +34,11 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):
         self.game_state.update(game_state)
         pass
 
-    def render(self, game_state):
+    def render(self):
         print(str(self.formatter))
 
 class Formatter:
-    def __init__(self, view):
+    def __init__(self, view):                   # view is a ViewCLI?
         self.view = view
         self.game_state = view.game_state
 
@@ -51,25 +60,25 @@ class Formatter:
 
     def discard_string(self):
         d = self.game_state.discard
-        return "DISCARD: {}, ...".format(d[0:min(len(d), 3)])
+        return "DISCARD: {}, ...".format(d[-min(len(d), 3):])       # discard top is on right end?
 
     def deck_string(self):
-        return "DECK: {} CARDS".format(self.game_state.deck)
+        return "DECK: {} CARDS".format(self.game_state.deck_size)
 
     def owner_string(self):
         return "YOUR HAND:{}\nYOUR FIELDS:{}".format(
                 self.game_state.hand,
-                self.game_state.players[self.game_state.owner()].fields)
+                self.game_state.players[self.game_state.owner].fields)
 
     def __str__(self):
         gs = self.game_state
         data = []
-        for i, p in gs:
-            if i == gs.current_player: continue
+        for i, p in enumerate(gs.players):  # changed. not sure
+            if i == gs.owner: continue
             data.append(self.other_player_string(p))
-        data.append(offering_string())
-        data.append(discard_string())
-        data.append(deck_string())
-        data.append(owner_string())
+        data.append(self.offering_string())
+        data.append(self.discard_string())
+        data.append(self.deck_string())
+        data.append(self.owner_string())
 
         return '\n\n'.join(data)

@@ -43,7 +43,7 @@ class Card:
         self.exchange[curr_num_cards] = curr_num_coins
         self.max = curr_num_cards
         Card.cards.append(self)
-        Cards.name_to_card[self.name] = self
+        Card.name_to_card[self.name] = self
 
     def __getitem__(self, item): # HUHHHH???
         if not isinstance(item, int):
@@ -53,6 +53,12 @@ class Card:
         if item > self.max:
             return self.exchange[self.max]
         return self.exchange[item]
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
 
 
 Card(name="Coffee Bean",        exchange=(4,    7, 10, 12),    count=24)

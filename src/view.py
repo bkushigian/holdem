@@ -1,7 +1,13 @@
 class ViewServerMixin:
     """ Mixin for the server side of the View. """
 
-    def update(self, game_state):
+    def __init__(self, game_state):
+        """
+        :param game_state: ViewGameState
+        """
+        self.game_state = game_state
+
+    def update(self, game_state):               # should this be filled out? 'if client is not this object'?
         """Update the game state and send to the client if the client is not
         this object."""
         pass
@@ -61,27 +67,38 @@ class ViewGameState:
         if other.discard is not None:
             self.discard = other.discard
 
+        if other.players is not None:   # Added this
+            self.players = other.players
+
     @staticmethod
-    def from_game_state(self, game_state, owner):
-        hand = game_state.players[owner].hand
+    def from_game(game, owner):
+        hand = game.players[owner].hand
+        players = [ViewPlayer.from_player(player) for player in game.players]
         return ViewGameState(owner=owner,
-                    players=game_state.players,
-                    current_player=game_state.current_player,
+                    players=players,
+                    current_player=game.curr_player,
                     hand=hand,
-                    deck_size=len(game_state.deck),
-                    offering=game_state.offering,
-                    discard=game_state.discard)
+                    deck_size=len(game.deck),
+                    offering=game.offering,
+                    discard=game.discard)
 
 class ViewPlayer:
-    def __init__(self, name, hand_size, fields):
+    def __init__(self, name, hand_size, fields, coins):
         """
         Create a new player for sending to a `View`. This contains the player's
         name, their hand size, and their bean fields.
         :param name: the player's name
         :param hand_size: the player's hand size
         :param fields: a list of the player's bean fields
+        :param coins: the number of coins the player has
         """
         self.name = name
         self.hand_size = hand_size
         self.fields = fields
+        self.coins = coins
 
+    @staticmethod
+    def from_player(player):
+        """using Game Player"""
+        return ViewPlayer(player.name, len(player.hand), player.fields, player.coins)
+    
