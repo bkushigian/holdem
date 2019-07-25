@@ -21,8 +21,9 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):    # ViewServerMixin takes a ga
         if formatter is None:
             self.formatter = Formatter(self)
 
-    def setup(self, players, current_player, hand, deck_size, offering, discard):
+    def setup(self, phase, players, current_player, hand, deck_size, offering, discard):    # what is this for?
         gs = self.game_state
+        gs.phase = phase        # want?
         gs.players = players
         gs.current_player = current_player
         gs.hand = hand
@@ -37,10 +38,14 @@ class ViewCLI(ViewServerMixin, ViewClientMixin):    # ViewServerMixin takes a ga
     def render(self):
         print(str(self.formatter))
 
+
 class Formatter:
     def __init__(self, view):                   # view is a ViewCLI?
         self.view = view
         self.game_state = view.game_state
+
+    def phase_string(self):
+        return "PHASE: {}".format(self.game_state.phase)
 
     def other_player_string(self, player):
         """
@@ -75,6 +80,7 @@ class Formatter:
     def __str__(self):
         gs = self.game_state
         data = []
+        data.append(self.phase_string())
         for i, p in enumerate(gs.players):  # changed. not sure
             if i == gs.owner: continue
             data.append(self.other_player_string(p))

@@ -74,6 +74,12 @@ Card(name="Garden Bean",        exchange=(None, 2,  3,  None), count=6)
 Card(name="Cocoa Bean",         exchange=(None, 2,  3,  4),    count=4)
 
 
+class ErrorMessage:
+    def __init__(self, player, msg):
+        self.player = player    # -1 for all players?
+        self.msg = msg
+
+
 class Game:
     def __init__(self, players):
 
@@ -83,8 +89,10 @@ class Game:
         self.discard = []
         self.offering = [None, None, None]
         self.curr_player = 0
-        self.status = 0     # 0 = success, 1 = failure
-        self.status_message = None
+        #self.status = 0     # 0 = success, 1 = failure
+        #self.status_message = None
+
+        self.error = None
 
         self.phase = PhaseI(self)
         self.phase.create_phases()
@@ -127,13 +135,12 @@ class Game:
 
     def deal_to_player(self, player):   # this is only used at start of game. can I change this/phase4 so it can be reused? complicated by gave_over
         if not self.deck:
-            self.error(1, "Deal from empty deck")
+            self.report_error(self.curr_player, "Deal from empty deck")
             return False
         self.players[player].hand.insert(0, self.deck.pop())
 
-    def error(self, status, msg):
-        self.status = status
-        self.status_message = msg
+    def report_error(self, player, msg):   # now have field called error, too...
+        self.error = ErrorMessage(player, msg)
 
 
 class Phase:
@@ -144,22 +151,27 @@ class Phase:
     def update(self, **kwargs):
         pass
 
+    '''
     def error(self, status, msg):
         self.game.error(status, msg)
+    '''
+
+    def report_error(self, player, msg):
+        self.game.report_error(player, msg)
 
     # want harvest method here?
     def harvest(self, args):
         if not isinstance(args, tuple) or len(args) != 2:
-            self.error(1, 'wrong input')
+            self.report_error(-1, 'wrong input to harvest')    # controller will obviate need for this, but -1 for now
             return
 
         p, f = args  # player, field indices
-        if not isinstance(p, int) or not isinstance(f, int):
-            self.error(1, 'wrong input')
+        if not isinstance(p, int) or p not in range(self.game.num_players):
+            self.report_error(-1, 'wrong input to harvest')    # hopefully not needed in future, but -1 for now
             return
 
-        if p not in range(self.game.num_players) or f not in range(len(self.game.players[p].fields)):
-            self.error(1, 'wrong input')
+        if not isinstance(f, int) or f not in range(len(self.game.players[p].fields)):
+            self.report_error(p, 'wrong input')
             return
 
         player = self.game.players[p]
@@ -178,7 +190,7 @@ class Phase:
         game = self.game
         for i in idxs:
             if game.offering[i] is None:
-                self.error(1, 'nothing at that offering index')
+                self.report_error(self.game.curr_player, 'nothing at that offering index')
                 break
             card, number = game.offering[i]
             planting_field = None
@@ -193,7 +205,7 @@ class Phase:
                     planting_field = j
                     break
             if planting_field is None:
-                self.error(1, 'nowhere to plant: need to harvest first')
+                self.report_error(self.game.curr_player, 'nowhere to plant: need to harvest first')
                 break
             if fields[planting_field] is None:
                 fields[planting_field] = (card, number)
@@ -214,7 +226,8 @@ class PhaseI(Phase):
 
     def update(self, **kwargs):
         game = self.game
-        self.error(0, '')
+        #self.error(0, '')
+        self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
@@ -234,13 +247,15 @@ class PhaseI(Phase):
         # Plant from offering into field
         elif action == 'plant':
             if not isinstance(args, list) or any(arg not in range(len(game.offering)) for arg in args):
-                self.error(1, 'wrong input')
+                self.report_error(self.game.curr_player, 'wrong input')
                 return
             self.plant_from_offering(args)
 
         else:
-            self.error(1, 'invalid action')
+            self.report_error(self.game.curr_player, 'invalid action')
 
+    def __str__(self):
+        return '1'
 
 class PhaseII(Phase):
     def __init__(self, game):
@@ -251,7 +266,7 @@ class PhaseII(Phase):
 
     def end_phase(self):
         if self.num_planted < 1:
-            self.error(1, 'need to plant at least one bean before ending phase')
+            self.report_error(self.game.curr_player, 'need to plant at least one bean before ending phase')
             return
         self.num_planted = 0
         self.done_discarding = False
@@ -259,7 +274,8 @@ class PhaseII(Phase):
 
     def update(self, **kwargs):
         game = self.game
-        self.error(0, '')
+        #self.error(0, '')
+        self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
@@ -273,14 +289,14 @@ class PhaseII(Phase):
         # Plant from hand to field
         elif action == 'plant':
             if self.num_planted >= 2:
-                self.error(1, 'already planted max number of beans')
+                self.report_error(self.game.curr_player, 'already planted max number of beans')
                 return
             if self.done_discarding:
-                self.error(1, 'can\'t plant after discarding')
+                self.report_error(self.game.curr_player, 'can\'t plant after discarding')
                 return
             hand = game.players[game.curr_player].hand
             if not hand:
-                self.error(1, 'no cards in hand to plant')
+                self.report_error(self.game.curr_player, 'no cards in hand to plant')
                 return
             card = hand.pop()   # append again later if no room in fields
 
@@ -297,7 +313,7 @@ class PhaseII(Phase):
                     break
             if planting_field is None:
                 hand.append(card)
-                self.error(1, 'nowhere to plant: need to harvest first')
+                self.report_error(self.game.curr_player, 'nowhere to plant: need to harvest first')
                 return
             if fields[planting_field] is None:
                 fields[planting_field] = (card, 1)
@@ -308,23 +324,25 @@ class PhaseII(Phase):
         # Discard from hand
         elif action == 'discard':
             if self.num_planted < 1:
-                self.error(1, 'need to plant at least one bean before discarding')
+                self.report_error(self.game.curr_player, 'need to plant at least one bean before discarding')
                 return
             if self.done_discarding:
-                self.error(1, 'can only discard once')
+                self.report_error(self.game.curr_player, 'can only discard once')
                 return
             index = args
             hand = game.players[game.curr_player].hand
             if not isinstance(index, int) or index not in range(len(hand)):
-                self.error(1, 'no card in that position in hand')
+                self.report_error(self.game.curr_player, 'no card in that position in hand')
                 return
             card = hand.pop(index)
             game.discard.append(card)
             self.done_discarding = True
 
         else:
-            self.error(1, 'invalid action')
+            self.report_error(self.game.curr_player, 'invalid action')
 
+    def __str__(self):
+        return '2'
 
 class PhaseIII(Phase):
     def __init__(self, game):
@@ -335,14 +353,15 @@ class PhaseIII(Phase):
 
     def update(self, **kwargs):
         game = self.game
-        self.error(0, '')
+        #self.error(0, '')
+        self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
 
         if action == 'end_phase':
             if not self.done_drawing:
-                self.error(1, 'must draw before ending phase')
+                self.report_error(self.game.curr_player, 'must draw before ending phase')
                 return
             if self.game_over:
                 game.game_over()
@@ -356,7 +375,7 @@ class PhaseIII(Phase):
         # Draw from deck into offering
         elif action == 'draw':
             if self.done_drawing:
-                self.error(1, 'already drew')
+                self.report_error(self.game.curr_player, 'already drew')
                 return
             for _ in range(3):
                 if game.deck:
@@ -399,16 +418,18 @@ class PhaseIII(Phase):
         # Plant from offering into field
         elif action == 'plant':
             if not self.done_drawing:
-                self.error(1, 'need to draw 3 first')
+                self.report_error(self.game.curr_player, 'need to draw 3 first')
                 return
             if not isinstance(args, list) or any(arg not in range(len(game.offering)) for arg in args):
-                self.error(1, 'wrong input')
+                self.report_error(self.game.curr_player, 'wrong input')
                 return
             self.plant_from_offering(args)
 
         else:
-            self.error(1, 'invalid action')
+            self.report_error(self.game.curr_player, 'invalid action')
 
+    def __str__(self):
+        return '3'
 
 class PhaseIV(Phase):
     def __init__(self, game):
@@ -418,14 +439,15 @@ class PhaseIV(Phase):
 
     def update(self, **kwargs):
         game = self.game
-        self.error(0, '')
+        #self.error(0, '')
+        self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
 
         if action == 'end_phase':
             if not self.done_drawing:
-                self.error(1, 'need to draw before ending phase')
+                self.report_error(self.game.curr_player, 'need to draw before ending phase')
                 return
             self.done_drawing = False
             game.curr_player = (game.curr_player + 1) % game.num_players
@@ -436,7 +458,7 @@ class PhaseIV(Phase):
 
         elif action == 'draw':
             if self.done_drawing:
-                self.error(1, 'already drew')
+                self.report_error(self.game.curr_player, 'already drew')
                 return
             for _ in range(2):
                 if game.deck:
@@ -447,8 +469,10 @@ class PhaseIV(Phase):
             self.done_drawing = True    # does this run if reach game over above?
 
         else:
-            self.error(1, 'invalid action')
+            self.report_error(self.game.curr_player, 'invalid action')
 
+    def __str__(self):
+        return '4'
 
 class PhaseGameOver(Phase):
     def __init__(self, game):
@@ -456,11 +480,19 @@ class PhaseGameOver(Phase):
         self.next = None
 
     def update(self, **kwargs):
-        self.error(0, '')   # want to use error method or no?
+        #self.error(0, '')   # want to use error method or no?
+        self.game.error = None
 
         # TODO: write update method
+
+        action = kwargs['action']
+        args = kwargs['args']
+
         if action == 'dummy':
             pass
 
         else:
-            self.error(1, 'invalid action')
+            self.report_error(self.game.curr_player, 'invalid action')
+
+    def __str__(self):
+        return 'Game Over'

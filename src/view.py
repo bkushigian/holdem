@@ -5,7 +5,8 @@ class ViewServerMixin:
         """
         :param game_state: ViewGameState
         """
-        self.game_state = game_state
+
+        pass
 
     def update(self, game_state):               # should this be filled out? 'if client is not this object'?
         """Update the game state and send to the client if the client is not
@@ -20,7 +21,7 @@ class ViewClientMixin:
         pass
 
 class ViewGameState:
-    def __init__(self, owner, players=None, current_player=None, hand=None,
+    def __init__(self, owner, phase, players=None, current_player=None, hand=None,
             deck_size=None, offering=None, discard=None):
         """ Create a new game state to pass to the View. A default value of
         `None` is provided for each argument aside from `owner`, which must be
@@ -30,6 +31,7 @@ class ViewGameState:
         :param owner: the index into `players` of the player who is being
             updated. This is to prevent sharing data, such as the player's hand,
             to other players
+        :param phase: phase in the game
         :param players: a list of `ViewPlayer`s, which represents bean fields
             and hand sizes, as well as player names, etc.
         :param current_player: an index into `players` indicating whose turn it
@@ -40,6 +42,7 @@ class ViewGameState:
         :param discard: the discard pile
         """
         self.owner = owner
+        self.phase = phase
         self.players = players
         self.current_player = current_player
         self.hand = hand
@@ -56,6 +59,8 @@ class ViewGameState:
         updated was that a player drew a card, that player's new hand size and
         the new deck size should be reported, but nothing else.
         """
+        if other.phase is not None:
+            self.phase = other.phase
         if other.current_player is not None:
             self.current_player = other.current_player
         if other.hand is not None:
@@ -73,8 +78,10 @@ class ViewGameState:
     @staticmethod
     def from_game(game, owner):
         hand = game.players[owner].hand
+        phase = game.phase
         players = [ViewPlayer.from_player(player) for player in game.players]
         return ViewGameState(owner=owner,
+                    phase=phase,
                     players=players,
                     current_player=game.curr_player,
                     hand=hand,
