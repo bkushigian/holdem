@@ -78,6 +78,7 @@ class Controller:
             else:
                 self.model.game.report_error(player, 'invalid action for Phase {}'.format(phase))  # ?
                 return True
+
         elif isinstance(phase, PhaseII):
             if action == 'plant':
                 d = {'action': 'plant', 'args': None}
@@ -94,6 +95,7 @@ class Controller:
             else:
                 self.model.game.report_error(player, 'invalid action for Phase {}'.format(phase))  # ?
                 return True
+
         elif isinstance(phase, PhaseIII):
             if action == 'plant':
                 if args is None:
@@ -111,6 +113,7 @@ class Controller:
             else:
                 self.model.game.report_error(player, 'invalid action for Phase {}'.format(phase))  # ?
                 return True
+
         elif isinstance(phase, PhaseIV):
             if action == 'draw':
                 d = {'action': 'draw', 'args': None}

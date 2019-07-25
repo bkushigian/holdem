@@ -188,13 +188,28 @@ class Phase:
 
     def plant_from_offering(self, idxs):
         game = self.game
+        fields = game.players[game.curr_player].fields
+
+        open_fields = 0
+        matches = 0
+
         for i in idxs:
             if game.offering[i] is None:
-                self.report_error(self.game.curr_player, 'nothing at that offering index')
-                break
+                self.report_error(self.game.curr_player, 'nothing at offering index {}'.format(i+1))
+                return
+        cards = [game.offering[i][0] for i in idxs]
+        for f in fields:
+            if f is None:
+                open_fields += 1
+            elif f[0] in cards:
+                matches += 1
+        if matches + open_fields < len(idxs):
+            self.report_error(self.game.curr_player, 'nowhere to plant: need to harvest first')
+            return
+
+        for i in idxs:
             card, number = game.offering[i]
             planting_field = None
-            fields = game.players[game.curr_player].fields
 
             for j, f in enumerate(fields):
                 # If haven't found a place to plant yet and field is empty, pick this field but keep looking
@@ -204,9 +219,7 @@ class Phase:
                 elif f is not None and f[0] == card:
                     planting_field = j
                     break
-            if planting_field is None:
-                self.report_error(self.game.curr_player, 'nowhere to plant: need to harvest first')
-                break
+
             if fields[planting_field] is None:
                 fields[planting_field] = (card, number)
             else:
@@ -298,9 +311,10 @@ class PhaseII(Phase):
             if not hand:
                 self.report_error(self.game.curr_player, 'no cards in hand to plant')
                 return
-            card = hand.pop()   # append again later if no room in fields
+            card = hand[-1]
 
             # modified from phase 1
+
             planting_field = None
             fields = game.players[game.curr_player].fields
             for j, f in enumerate(fields):
@@ -312,9 +326,9 @@ class PhaseII(Phase):
                     planting_field = j
                     break
             if planting_field is None:
-                hand.append(card)
                 self.report_error(self.game.curr_player, 'nowhere to plant: need to harvest first')
                 return
+            hand.pop()
             if fields[planting_field] is None:
                 fields[planting_field] = (card, 1)
             else:

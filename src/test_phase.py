@@ -47,10 +47,10 @@ class TestPhase(TestCase):
         d = {'action':'harvest', 'args':(0,0)}
         game.phase.update(**d)
         self.assertEqual(game.players[0].fields[0], None)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         d = {'action': 'harvest', 'args': (2, 0)}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
     def test_harvest_2(self):
         game = self.new_game()
@@ -59,56 +59,56 @@ class TestPhase(TestCase):
         game.phase.update(**d)
         self.assertEqual(game.players[0].fields[0], None)
         self.assertEqual(game.players[0].coins, 0)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[0].fields[0] = (Card.cards[0], 4)
         d = {'action': 'harvest', 'args': (0, 0)}
         game.phase.update(**d)
         self.assertEqual(game.players[0].fields[0], None)
         self.assertEqual(game.players[0].coins, 1)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[0].fields[0] = (Card.cards[0], 5)
         d = {'action': 'harvest', 'args': (0, 0)}
         game.phase.update(**d)
         self.assertEqual(game.players[0].fields[0], None)
         self.assertEqual(game.players[0].coins, 2)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[0].fields[0] = (Card.cards[0], 13)
         d = {'action': 'harvest', 'args': (0, 0)}
         game.phase.update(**d)
         self.assertEqual(game.players[0].fields[0], None)
         self.assertEqual(game.players[0].coins, 6)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[1].fields[1] = (Card.cards[3], 2)
         d = {'action': 'harvest', 'args': (1, 1)}
         game.phase.update(**d)
         self.assertEqual(game.players[1].fields[1], None)
         self.assertEqual(game.players[1].coins, 0)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[1].fields[1] = (Card.cards[3], 3)
         d = {'action': 'harvest', 'args': (1, 1)}
         game.phase.update(**d)
         self.assertEqual(game.players[1].fields[1], None)
         self.assertEqual(game.players[1].coins, 1)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[1].fields[1] = (Card.cards[3], 5)
         d = {'action': 'harvest', 'args': (1, 1)}
         game.phase.update(**d)
         self.assertEqual(game.players[1].fields[1], None)
         self.assertEqual(game.players[1].coins, 2)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
         game.players[0].fields[2] = (Card.cards[0], 7)
         d = {'action': 'harvest', 'args': (0, 2)}
         game.phase.update(**d)
         self.assertEqual(game.players[0].fields[0], None)
         self.assertEqual(game.players[0].coins, 8)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
 
     def test_phase1_end_phase(self):
         game = self.new_game()
@@ -137,32 +137,32 @@ class TestPhase(TestCase):
 
         self.assertEqual(game.offering, [None, None, None])
         self.assertEqual(game.players[0].fields, [(Card.cards[0], 2), None, (Card.cards[1], 2)])
-        self.assertEqual(game.status, 0)
+
+        self.assertEqual(game.error, None)
 
         game.offering = [(Card.cards[0], 2), None, (Card.cards[1], 1)]
         game.players[0].fields = [None, None, (Card.cards[1], 1)]
         d = {'action': 'plant', 'args': [0, 1, 2]}
         game.phase.update(**d)
 
-        # Partly does what was asked, but doesn't finish due to error
-        # Don't know if I like this behavior--maybe ignore if give index of empty offering?
-        self.assertEqual(game.offering, [None, None, (Card.cards[1], 1)])
-        self.assertEqual(game.players[0].fields, [(Card.cards[0], 2), None, (Card.cards[1], 1)])
-        self.assertEqual(game.status, 1)
+        # Does nothing, raises error
+        self.assertEqual(game.offering, [(Card.cards[0], 2), None, (Card.cards[1], 1)])
+        self.assertEqual(game.players[0].fields, [None, None, (Card.cards[1], 1)])
+        self.assertNotEqual(game.error, None)
 
         d = {'action': 'plant', 'args': [3]}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
         game.offering = [(Card.cards[0], 2), None, (Card.cards[1], 1)]
         game.players[0].fields = [(Card.cards[0], 1), (Card.cards[2], 1), (Card.cards[3], 1)]
         d = {'action': 'plant', 'args': [0, 2]}
         game.phase.update(**d)
 
-        # Partly does what was asked, but doesn't finish due to error
-        self.assertEqual(game.offering, [None, None, (Card.cards[1], 1)])
-        self.assertEqual(game.players[0].fields, [(Card.cards[0], 3), (Card.cards[2], 1), (Card.cards[3], 1)])
-        self.assertEqual(game.status, 1)
+        # Does nothing, raises error
+        self.assertEqual(game.offering, [(Card.cards[0], 2), None, (Card.cards[1], 1)])
+        self.assertEqual(game.players[0].fields, [(Card.cards[0], 1), (Card.cards[2], 1), (Card.cards[3], 1)])
+        self.assertNotEqual(game.error, None)
 
     def test_phase2_end_phase(self):
         game = self.new_game()
@@ -170,14 +170,14 @@ class TestPhase(TestCase):
         # Try to end phase without planting
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
         # Plant, then try to end phase
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIII)
 
         phase2 = game.phase.next.next.next
@@ -194,7 +194,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.phase.done_discarding, True)
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIII)
 
         phase2 = game.phase.next.next.next
@@ -207,19 +207,19 @@ class TestPhase(TestCase):
         game.players[0].fields = [None, (Card.cards[4], 1), None]
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.players[0].fields, [None, (Card.cards[4], 2), None])
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[1], Card.cards[2], Card.cards[3]])
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.players[0].fields, [(Card.cards[3], 1), (Card.cards[4], 2), None])
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[1], Card.cards[2]])
 
         # Max already planted, shouldn't work
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].fields, [(Card.cards[3], 1), (Card.cards[4], 2), None])
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[1], Card.cards[2]])
 
@@ -229,7 +229,7 @@ class TestPhase(TestCase):
         game.players[0].fields = [(Card.cards[0], 1), (Card.cards[1], 1), (Card.cards[2], 1)]
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].fields, [(Card.cards[0], 1), (Card.cards[1], 1), (Card.cards[2], 1)])
         self.assertEqual(game.players[0].hand,
                          [Card.cards[0], Card.cards[1], Card.cards[2], Card.cards[3], Card.cards[4]])
@@ -241,13 +241,13 @@ class TestPhase(TestCase):
         game.phase.update(**d)
         d = {'action': 'discard', 'args': 0}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.phase.done_discarding, True)
         self.assertEqual(game.players[0].fields, [(Card.cards[4], 1), (Card.cards[1], 1), (Card.cards[2], 1)])
         self.assertEqual(game.players[0].hand, [Card.cards[1], Card.cards[2], Card.cards[3]])
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].fields, [(Card.cards[4], 1), (Card.cards[1], 1), (Card.cards[2], 1)])
         self.assertEqual(game.players[0].hand, [Card.cards[1], Card.cards[2], Card.cards[3]])
         self.assertEqual(game.phase.done_discarding, True)
@@ -258,7 +258,7 @@ class TestPhase(TestCase):
         game.players[0].fields = [None, None, None]
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].fields, [None, None, None])
         self.assertEqual(game.players[0].hand, [])
 
@@ -269,7 +269,7 @@ class TestPhase(TestCase):
         game.players[0].hand = [Card.cards[0], Card.cards[1], Card.cards[2], Card.cards[3], Card.cards[4]]
         d = {'action': 'discard', 'args': 1}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].hand,
                          [Card.cards[0], Card.cards[1], Card.cards[2], Card.cards[3], Card.cards[4]])
         self.assertEqual(game.discard, [])
@@ -282,7 +282,7 @@ class TestPhase(TestCase):
         # ... but not if index is invalid...
         d = {'action': 'discard', 'args': 4}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[1], Card.cards[2], Card.cards[3]])
         self.assertEqual(game.discard, [])
         self.assertEqual(game.phase.done_discarding, False)
@@ -290,7 +290,7 @@ class TestPhase(TestCase):
         # ... or not an int
         d = {'action': 'discard', 'args': 'string'}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[1], Card.cards[2], Card.cards[3]])
         self.assertEqual(game.discard, [])
         self.assertEqual(game.phase.done_discarding, False)
@@ -298,7 +298,7 @@ class TestPhase(TestCase):
         # Works if try again with valid index
         d = {'action': 'discard', 'args': 1}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[2], Card.cards[3]])
         self.assertEqual(game.discard, [Card.cards[1]])
         self.assertEqual(game.phase.done_discarding, True)
@@ -306,7 +306,7 @@ class TestPhase(TestCase):
         # Can't discard twice
         d = {'action': 'discard', 'args': 1}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.players[0].hand, [Card.cards[0], Card.cards[2], Card.cards[3]])
         self.assertEqual(game.discard, [Card.cards[1]])
         self.assertEqual(game.phase.done_discarding, True)
@@ -322,7 +322,7 @@ class TestPhase(TestCase):
         # Draw [3 cards] to offering once
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.offering, [(Card.cards[2], 1), (Card.cards[1], 1), (Card.cards[0], 1)])
         self.assertEqual(game.deck[-3:], [Card.cards[3], Card.cards[4], Card.cards[5]])
         self.assertEqual(len(game.deck), 131)
@@ -332,7 +332,7 @@ class TestPhase(TestCase):
         # Shouldn't be able to draw twice
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(len(game.deck), 131)
         self.assertEqual(game.offering, [(Card.cards[2], 1), (Card.cards[1], 1), (Card.cards[0], 1)])
         self.assertEqual(game.phase.done_drawing, True)
@@ -347,7 +347,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.phase.game_over, False)
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.offering, [(Card.cards[2], 2), (Card.cards[0], 1), None])
         self.assertEqual(game.deck[-3:], [Card.cards[3], Card.cards[4], Card.cards[5]])
         self.assertEqual(len(game.deck), 131)
@@ -364,7 +364,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.phase.game_over, False)
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.offering, [(Card.cards[2], 3), (Card.cards[0], 2), None])
         self.assertEqual(game.deck[-3:], [Card.cards[3], Card.cards[4], Card.cards[5]])
         self.assertEqual(game.discard, [Card.cards[5]])
@@ -382,7 +382,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.phase.game_over, False)
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.offering, [(Card.cards[2], 2), (Card.cards[0], 2), None])
         self.assertEqual(game.deck, [])
         self.assertEqual(game.discard, [Card.cards[5]])
@@ -411,7 +411,7 @@ class TestPhase(TestCase):
         # Shouldn't be able to end phase without drawing
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIII)
         self.assertEqual(game.offering, [None, None, None])
         self.assertEqual(game.deck[-6:],
@@ -425,7 +425,7 @@ class TestPhase(TestCase):
         game.phase.update(**d)
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIV)
         self.assertEqual(len(game.deck), 131)
         self.assertEqual(game.offering, [(Card.cards[2], 1), (Card.cards[1], 1), (Card.cards[0], 1)])
@@ -466,7 +466,7 @@ class TestPhase(TestCase):
                          [Card.cards[1], Card.cards[2], Card.cards[0], Card.cards[1], Card.cards[2]])
         self.assertEqual(game.deck[-4:], [Card.cards[3], Card.cards[4], Card.cards[5], Card.cards[0]])
         self.assertEqual(len(game.deck), 132)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertEqual(game.phase.done_drawing, True)
 
         # Shouldn't be able to draw twice
@@ -476,7 +476,7 @@ class TestPhase(TestCase):
                          [Card.cards[1], Card.cards[2], Card.cards[0], Card.cards[1], Card.cards[2]])
         self.assertEqual(game.deck[-4:], [Card.cards[3], Card.cards[4], Card.cards[5], Card.cards[0]])
         self.assertEqual(len(game.deck), 132)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
         self.assertEqual(game.phase.done_drawing, True)
 
         # If only one card left in deck
@@ -490,7 +490,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.players[0].hand,
                          [Card.cards[2], Card.cards[0], Card.cards[1], Card.cards[2]])
         self.assertEqual(game.deck, [])
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseGameOver)
 
         # If no cards left in deck
@@ -504,7 +504,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.players[0].hand,
                          [Card.cards[0], Card.cards[1], Card.cards[2]])
         self.assertEqual(game.deck, [])
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseGameOver)
 
         # already tested game_over() for phase3
@@ -517,14 +517,14 @@ class TestPhase(TestCase):
         # Shouldn't be able to end phase if haven't drawn
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
         # End phase should work if have already drawn
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
         d = {'action': 'end_phase', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 0)
+        self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseI)
         self.assertEqual(game.phase.next.next.next.done_drawing, False)
         self.assertEqual(game.curr_player, 1)
@@ -544,19 +544,19 @@ class TestPhase(TestCase):
         game = self.new_game()
         d = {'action': 'wrong', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
         game.phase = game.phase.next
         d = {'action': 'wrong', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
         game.phase = game.phase.next
         d = {'action': 'wrong', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)
 
         game.phase = game.phase.next
         d = {'action': 'wrong', 'args': None}
         game.phase.update(**d)
-        self.assertEqual(game.status, 1)
+        self.assertNotEqual(game.error, None)

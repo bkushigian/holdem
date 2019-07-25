@@ -13,8 +13,11 @@ def main():
     while True:
         cmd = input('>>>')
         cont = controller.process(cmd)
+        controller.update_views()
         if not cont:
             break
+
+
 
 
 
