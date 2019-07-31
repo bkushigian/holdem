@@ -115,7 +115,7 @@ class TestPhase(TestCase):
         game.phase = game.phase.next.next.next
         game.offering = [(Card.cards[0], 2), None, (Card.cards[1], 1)]
 
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
 
         self.assertEqual(game.offering, [None, None, None])
@@ -168,14 +168,14 @@ class TestPhase(TestCase):
         game = self.new_game()
 
         # Try to end phase without planting
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertNotEqual(game.error, None)
 
         # Plant, then try to end phase
         d = {'action': 'plant', 'args': None}
         game.phase.update(**d)
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIII)
@@ -192,7 +192,7 @@ class TestPhase(TestCase):
         d = {'action': 'discard', 'args': 0}
         game.phase.update(**d)
         self.assertEqual(game.phase.done_discarding, True)
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIII)
@@ -409,7 +409,7 @@ class TestPhase(TestCase):
         self.assertEqual(game.phase.game_over, False)
 
         # Shouldn't be able to end phase without drawing
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertNotEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIII)
@@ -423,7 +423,7 @@ class TestPhase(TestCase):
         # Ending phase after drawing should work
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseIV)
@@ -441,7 +441,7 @@ class TestPhase(TestCase):
         # results in game over because deck is empty
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertIsInstance(game.phase, PhaseGameOver)
         self.assertEqual(game.players[0].coins, 1)
@@ -515,14 +515,14 @@ class TestPhase(TestCase):
         game.phase = game.phase.next.next
 
         # Shouldn't be able to end phase if haven't drawn
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertNotEqual(game.error, None)
 
         # End phase should work if have already drawn
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertEqual(game.error, None)
         self.assertIsInstance(game.phase, PhaseI)
@@ -535,7 +535,7 @@ class TestPhase(TestCase):
         game.curr_player = 1
         d = {'action': 'draw', 'args': None}
         game.phase.update(**d)
-        d = {'action': 'end_phase', 'args': None}
+        d = {'action': 'next', 'args': None}
         game.phase.update(**d)
         self.assertEqual(game.curr_player, 0)
 

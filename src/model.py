@@ -17,9 +17,18 @@ class Model:
         self.game.phase.update(**kwargs)
         self.update_views()             # ???
 
-'''
-    # added this for when the only update is an error. no longer recognizes kwargs
-    def update(self):
-        self.update_views()             # ???
+    def report_error(self, player, msg):
+        self.game.report_error(player, msg)
+        self.update_views()
 
-'''
+    def current_player(self):
+        return self.game.curr_player
+
+    def get_error(self):
+        return self.game.error
+
+    def set_error(self, error):
+        self.game.error = error
+
+    def get_num_players(self):
+        return self.game.num_players

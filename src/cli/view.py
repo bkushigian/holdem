@@ -1,4 +1,4 @@
-from view import * #(ViewServerMixin, ViewClientMixin, ViewGameState, ViewPlayer)
+from view import ViewServerMixin, ViewClientMixin
 
 
 class ViewCLI(ViewServerMixin, ViewClientMixin):    # ViewServerMixin takes a game_state, not owner
@@ -42,6 +42,7 @@ class Formatter:
     def __init__(self, view):                   # view is a ViewCLI?
         self.view = view
         self.game_state = view.game_state
+        self.player_colors = ["32", "34", "31", "96"]
 
     def error_string(self):
         if self.game_state.error is not None:
@@ -50,50 +51,137 @@ class Formatter:
             return ""
 
     def phase_string(self):
-        return "PHASE: {}".format(self.game_state.phase)
+        return "{:^80}".format("-+- PHASE {} -+-".format(self.game_state.phase))
 
     def other_player_string(self, player):
         """
         Print a string representation of the player without any private info,
         such as cards in hand.
         """
-        return """PLAYER:{:<20}     HAND:{:>2} CARDS    COINS:{:>2}\nFIELDS:{}""".format(
+        return """  * \033[1m{}\033[0m: \033[32;1m{} Cards\033[0m || \033[32;1m${}\033[0m || \033[32;1m[{}]\033[0m""".format(
                 player.name,
                 player.hand_size,
                 player.coins,
-                player.fields)
-
-    def offering_string(self):
-        """
-        Print a string representation of the offering
-        """
-        return "OFFERING: {}".format(self.game_state.offering)
+                ', '.join([str(c) if c else 'Fallow' for c in player.fields ]))
 
     def discard_string(self):
         d = self.game_state.discard
-        return "DISCARD: ..., {}".format(d[-min(len(d), 3):])       # discard top is on right end?
+        if len(d) <= 3:
+            return "[{}]".format(','.join([str(x) for x in d]))
+        return "[{}]".format(','.join([str(x) for x in d[3:]]))
 
     def deck_string(self):
-        return "DECK: {} CARDS".format(self.game_state.deck_size)
+        return "{} Cards".format(self.game_state.deck_size)
 
     def owner_string(self):
-        return "YOUR HAND:{}\nYOUR FIELDS:{}\nYOUR COINS:{}".format(
-                self.game_state.hand,
-                self.game_state.players[self.game_state.owner].fields,
-                self.game_state.players[self.game_state.owner].coins)
+        return "{}\n{}".format(
+                self.offering_and_field_string(),
+                self.hand_string())
+
+    def hand_string(self):
+        lines = ['', '', '', '', '', '', '', '']
+        for card in self.game_state.hand:
+            p = card.pretty()
+            for i, line in enumerate(p.split('\n')):
+                lines[i] += line
+        return '\n'.join(lines)
+
+    empty = '+----------+\n|{:^10}|\n|{:^10}|\n|{}|\n|{:^10}|\n|{:^10}|\n|{:^10}|\n+----------+'.format(
+        '', '', '   \033[1;3mEmpty\033[0m  ', '', '', '')
+
+    def offering_and_field_string(self):
+        os = self.offering_string().split('\n')
+        fs = self.field_string().split('\n')
+
+        footer = '\033[1;34;7m{:^36}\033[0m\033[1;32m{:^8}\033[0m\033[1;34;7m{:^36}\033[0m\n'.format("Offerings", "${}".format(
+            self.game_state.players[self.game_state.owner].coins), "Fields")
+        return '\n'.join([o + '        ' + f for (o, f) in zip(os, fs)]) + '\n' + footer
+
+    def offering_string(self):
+        lines = ['', '', '', '', '', '', '', '', '']
+        offering = self.game_state.offering
+        for card in offering:
+            quantity = '0x'
+            if card is None:
+                p = self.empty
+            else:
+                card, quantity = card
+                quantity = '{}x'.format(quantity)
+                p = card.pretty()
+            for i, line in enumerate(p.split('\n')):
+                lines[i] += line
+            lines[-1] += '\033[1;3;7;34m{:^12}\033[0m'.format('{}'.format(quantity))
+        return '\n'.join(lines)
+
+    def field_string(self):
+        lines = ['', '', '', '', '', '', '', '', '']
+        fields = self.game_state.players[self.game_state.owner].fields
+        for card in fields:
+            quantity = '0x'
+            if card is None:
+                p = self.empty
+            else:
+                card, quantity = card
+                quantity = '{}x'.format(quantity)
+                p = card.pretty()
+            for i, line in enumerate(p.split('\n')):
+                lines[i] += line
+            lines[-1] += '\033[1;3;7;34m{:^12}\033[0m'.format('{}'.format(quantity))
+        return '\n'.join(lines)
 
     def __str__(self):
+        def decorate_first_letter(s):
+            if not s:
+                return ''
+            c = s[0]
+            s = s[1:]
+            return "\033[1;32m({})\033[0m{}".format(c, s)
         gs = self.game_state
-        data = []
-        if self.error_string() != "":                 # MESSY
-            data.append(self.error_string())
-        data.append(self.phase_string())
-        for i, p in enumerate(gs.players):  # changed. not sure
-            if i == gs.owner: continue
-            data.append(self.other_player_string(p))
-        data.append(self.offering_string())
-        data.append(self.discard_string())
-        data.append(self.deck_string())
-        data.append(self.owner_string())
 
-        return '\n\n'.join(data)
+        cp = "{}'s View (Player {})".format(gs.players[gs.owner].name, gs.owner + 1)
+        status_str = "Good"
+        if self.error_string() != "":                 # MESSY
+            status_str = self.error_string()
+
+        other_players = '\n'.join([self.other_player_string(p) for (i, p) in enumerate(gs.players) if i != gs.owner])
+
+        color = self.player_colors[gs.current_player]
+        return """
+        
+        
+        
+        
+        
+        
+        
+\033[1;7;{}m                                                                                \033[0m
+\033[1;7;{}m{:^80}\033[0m
+\033[1;7;{}m{}\033[0m
+\033[1;7;{}m                                                                                \033[0m
+
+\033[94;1mOther Players:\033[0m
+{}
+
+  \033[1;94mStatus:        \033[0m {}
+  \033[1;94mCurrent Player:\033[0m {} (Player {})
+  \033[1;94mDiscard:       \033[0m {}
+  \033[1;94mDeck:          \033[0m {}
+
+{}
+
+\033[34;1mAvailable Actions:\033[0m {}
+""".format(color,
+           color,
+           cp,
+           color,
+           self.phase_string(),
+           color,
+           other_players,
+           status_str,
+           gs.players[gs.current_player].name,
+           gs.current_player + 1,
+           self.discard_string(),
+           self.deck_string(),
+           self.owner_string(),
+           ', '.join([decorate_first_letter(str(x)) for x in gs.available_actions]))
+

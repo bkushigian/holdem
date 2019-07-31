@@ -14,8 +14,9 @@ class TestModel(TestCase):
         game = Game([player1, player2])
         model = Model(game)
 
-
-        for i in range(len(game.players)):
+        for i in range(game.num_players):
             model.register_view(ViewCLI(ViewGameState.from_game(game, i)))
 
         controller = ControllerCLI(model, model.views[0])  # ??? Don't know what else to do
+
+        return model, controller

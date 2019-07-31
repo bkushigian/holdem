@@ -8,10 +8,11 @@ class ViewServerMixin:
 
         pass
 
-    def update(self, game_state):               # should this be filled out? 'if client is not this object'?
+    def update(self, game_state):  # should this be filled out? 'if client is not this object'?
         """Update the game state and send to the client if the client is not
         this object."""
         pass
+
 
 class ViewClientMixin:
     """ Mixin for the client side of the View.  """
@@ -20,9 +21,10 @@ class ViewClientMixin:
         """Render the newest version of the view"""
         pass
 
+
 class ViewGameState:
     def __init__(self, owner, phase=None, players=None, current_player=None, hand=None,
-            deck_size=None, offering=None, discard=None, error=None):
+                 deck_size=None, offering=None, discard=None, error=None, available_actions=None):
         """ Create a new game state to pass to the View. A default value of
         `None` is provided for each argument aside from `owner`, which must be
         specified by the caller. A value of `None` means that no update was made
@@ -40,6 +42,7 @@ class ViewGameState:
         :param deck_size: the number of cards remaining in the deck
         :param offering: the offering
         :param discard: the discard pile
+        :param available_actions: the actions available to the active player
         """
         self.owner = owner
         self.phase = phase
@@ -50,6 +53,7 @@ class ViewGameState:
         self.offering = offering
         self.discard = discard
         self.error = error
+        self.available_actions = available_actions
 
     def update(self, other):
         """
@@ -73,28 +77,30 @@ class ViewGameState:
         if other.discard is not None:
             self.discard = other.discard
 
-
-        if other.players is not None:   # Added this
+        if other.players is not None:  # Added this
             self.players = other.players
-        self.error = other.error        # ??? because shouldn't carry over between updates, and needs to actually be None most of the time???
+        if other.available_actions is not None:
+            self.available_actions = other.available_actions
+        self.error = other.error  # ??? because shouldn't carry over between updates, and needs to actually be None most of the time???
 
     @staticmethod
     def from_game(game, owner):
         hand = game.players[owner].hand
         phase = game.phase
         players = [ViewPlayer.from_player(player) for player in game.players]
-        error = None                                                                                # ???
+        error = None  # ???
         if game.error is not None and (game.error.player == -1 or game.error.player == owner):
             error = game.error
         return ViewGameState(owner=owner,
-                    phase=phase,
-                    players=players,
-                    current_player=game.curr_player,
-                    hand=hand,
-                    deck_size=len(game.deck),
-                    offering=game.offering,
-                    discard=game.discard,
-                    error=error)
+                             phase=phase,
+                             players=players,
+                             current_player=game.curr_player,
+                             hand=hand,
+                             deck_size=len(game.deck),
+                             offering=game.offering,
+                             discard=game.discard,
+                             error=error,
+                             available_actions=phase.get_valid_actions())
 
 
 class ViewPlayer:
