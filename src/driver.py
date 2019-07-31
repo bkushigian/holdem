@@ -1,29 +1,30 @@
-from controller import Controller
 from state import *
 from model import Model
+from view import *
+from cli.view import ViewCLI
+from cli.controller import ControllerCLI
+
 
 def main():
 
     p1 = input('Player 1 name: ')
     p2 = input('Player 2 name: ')
-    game = Game([p1, p2])
+
+    game = Game([Player(p1), Player(p2)])
     model = Model(game)
-    controller = Controller(model)
+
+    for i in range(len(game.players)):
+        model.register_view(ViewCLI(ViewGameState.from_game(game, i)))
+
+    controller = ControllerCLI(model, model.views[0])   # ??? Don't know what else to do
 
     while True:
         cmd = input('>>>')
         cont = controller.process(cmd)
-        controller.update_views()
+        for view in model.views:
+            view.render()
         if not cont:
             break
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__': main()

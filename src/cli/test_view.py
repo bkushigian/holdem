@@ -9,7 +9,7 @@ class TestCLIView(TestCase):
         self.bview = ViewCLI("Ben")
         self.kview = ViewCLI("Kathryn")
         players = [Player("Ben"), Player("Kathryn")]
-        self.game = 
+        # self.game =
 
     def test_constructor(self):
         pass

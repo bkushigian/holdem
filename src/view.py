@@ -21,8 +21,8 @@ class ViewClientMixin:
         pass
 
 class ViewGameState:
-    def __init__(self, owner, phase, players=None, current_player=None, hand=None,
-            deck_size=None, offering=None, discard=None):
+    def __init__(self, owner, phase=None, players=None, current_player=None, hand=None,
+            deck_size=None, offering=None, discard=None, error=None):
         """ Create a new game state to pass to the View. A default value of
         `None` is provided for each argument aside from `owner`, which must be
         specified by the caller. A value of `None` means that no update was made
@@ -49,6 +49,7 @@ class ViewGameState:
         self.deck_size = deck_size
         self.offering = offering
         self.discard = discard
+        self.error = error
 
     def update(self, other):
         """
@@ -72,14 +73,19 @@ class ViewGameState:
         if other.discard is not None:
             self.discard = other.discard
 
+
         if other.players is not None:   # Added this
             self.players = other.players
+        self.error = other.error        # ??? because shouldn't carry over between updates, and needs to actually be None most of the time???
 
     @staticmethod
     def from_game(game, owner):
         hand = game.players[owner].hand
         phase = game.phase
         players = [ViewPlayer.from_player(player) for player in game.players]
+        error = None                                                                                # ???
+        if game.error is not None and (game.error.player == -1 or game.error.player == owner):
+            error = game.error
         return ViewGameState(owner=owner,
                     phase=phase,
                     players=players,
@@ -87,7 +93,9 @@ class ViewGameState:
                     hand=hand,
                     deck_size=len(game.deck),
                     offering=game.offering,
-                    discard=game.discard)
+                    discard=game.discard,
+                    error=error)
+
 
 class ViewPlayer:
     def __init__(self, name, hand_size, fields, coins):
@@ -108,4 +116,3 @@ class ViewPlayer:
     def from_player(player):
         """using Game Player"""
         return ViewPlayer(player.name, len(player.hand), player.fields, player.coins)
-    

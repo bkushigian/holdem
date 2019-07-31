@@ -78,6 +78,8 @@ class ErrorMessage:
     def __init__(self, player, msg):
         self.player = player    # -1 for all players?
         self.msg = msg
+    def __str__(self):
+        return self.msg
 
 
 class Game:
@@ -240,13 +242,16 @@ class PhaseI(Phase):
     def update(self, **kwargs):
         game = self.game
         #self.error(0, '')
-        self.game.error = None
+        #self.game.error = None     # resetting somewhere else now...  but that sounds bad
 
         action = kwargs['action']
         args = kwargs['args']
 
+        if action is None:
+            pass
+
         # At end of phase, discard all of offering that hasn't been planted
-        if action == 'end_phase':
+        elif action == 'end_phase':
             for o in game.offering:
                 if o is not None:
                     card, number = o
@@ -288,12 +293,15 @@ class PhaseII(Phase):
     def update(self, **kwargs):
         game = self.game
         #self.error(0, '')
-        self.game.error = None
+        #self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
 
-        if action == 'end_phase':
+        if action is None:
+            pass
+
+        elif action == 'end_phase':
             self.end_phase()
 
         elif action == 'harvest':
@@ -368,12 +376,15 @@ class PhaseIII(Phase):
     def update(self, **kwargs):
         game = self.game
         #self.error(0, '')
-        self.game.error = None
+        #self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
 
-        if action == 'end_phase':
+        if action is None:
+            pass
+
+        elif action == 'end_phase':
             if not self.done_drawing:
                 self.report_error(self.game.curr_player, 'must draw before ending phase')
                 return
@@ -454,12 +465,15 @@ class PhaseIV(Phase):
     def update(self, **kwargs):
         game = self.game
         #self.error(0, '')
-        self.game.error = None
+        #self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
 
-        if action == 'end_phase':
+        if action is None:
+            pass
+
+        elif action == 'end_phase':
             if not self.done_drawing:
                 self.report_error(self.game.curr_player, 'need to draw before ending phase')
                 return
@@ -495,14 +509,17 @@ class PhaseGameOver(Phase):
 
     def update(self, **kwargs):
         #self.error(0, '')   # want to use error method or no?
-        self.game.error = None
+        #self.game.error = None
 
         # TODO: write update method
 
         action = kwargs['action']
         args = kwargs['args']
 
-        if action == 'dummy':
+        if action is None:
+            pass
+
+        elif action == 'dummy':
             pass
 
         else:
