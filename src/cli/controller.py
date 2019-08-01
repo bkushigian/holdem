@@ -15,6 +15,9 @@ class ControllerCLI(Controller):
     def process(self, cmd):
         self.model.set_error(None)
         phase = self.view.game_state.phase
+        if not cmd.strip():
+            return True
+
         cmd = cmd.split(maxsplit=2)     # but what if 2 spaces b/w first and second word?
 
         if cmd[0] == 'q':

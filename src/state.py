@@ -280,7 +280,7 @@ class PhaseI(Phase):
             if len(self.game.offering) == 1:
                 actions.append('plant 0'.format(len(self.game.offering) - 1))
             else:
-                actions.append('plant <0..{}>'.format(len(self.game.offering) - 1))
+                actions.append('plant from offering <1..{}>'.format(len(self.game.offering)))
         actions.append('next')
         return actions
 
@@ -448,7 +448,13 @@ class PhaseIII(Phase):
         self.game_over = False      # move to game?
 
     def get_valid_actions(self):
-        return ['harvest', 'plant', 'next']
+        actions = ['harvest']
+
+        if any(self.game.offering):
+            actions.append('plant')
+
+        actions.append('next')
+        return actions
 
     def start_phase(self):
         pass
