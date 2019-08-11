@@ -56,7 +56,7 @@ class ControllerCLI(Controller):
 
             elif action.lower() in ('harvest', 'h'):
                 if args and args.isdigit():
-                    d = {'action': 'harvest', 'args': (player, int(args))}
+                    d = {'action': 'harvest', 'args': (player, int(args) - 1)}
                 else:
                     self.model.report_error(player, 'invalid argument for harvest')  # ?
                     return True
