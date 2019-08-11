@@ -186,7 +186,7 @@ class ActionPlantFromOffering(Action):
     def inverse(self):
         for off_index, card, number, field_index in self.index_list:
             fields = self.game.players[self.player].fields
-            fields[field_index][1] = fields[field_index][1] - number
+            fields[field_index] = (fields[field_index][0], fields[field_index][1] - number)
             if fields[field_index][1] == 0:
                 fields[field_index] = None
             self.game.offering[off_index] = (card, number)
@@ -209,7 +209,7 @@ class ActionPlantPhaseII(Action):
 
     def inverse(self):
         fields = self.game.players[self.player].fields
-        fields[self.field][1] = fields[self.field][1] - 1
+        fields[self.field] = (fields[self.field][0], fields[self.field][1] - 1)
         if fields[self.field][1] == 0:
             fields[self.field] = None
         self.game.players[self.player].hand.append(self.card)
@@ -238,10 +238,10 @@ class ActionDiscard(Action):
 
 #class ActionDrawPhaseIII(Action):
 
-class ActionEndPhaseIV(Action):
-    def inverse(self):
-        self.game.curr_player = self.player
-        self.game.phase = self.game.phase.next.next.    # go back to phase 4
+# class ActionEndPhaseIV(Action):
+#     def inverse(self):
+#         self.game.curr_player = self.player
+#         self.game.phase = self.game.phase.next.next.next   # go back to phase 4
 
 #class ActionDrawPhaseIV(Action):
 
@@ -336,6 +336,13 @@ class Phase:
     def report_error(self, player, msg):
         self.game.report_error(player, msg)
 
+    def undo(self):
+        if not self.game.actions:
+            self.report_error(self.game.curr_player, 'can\'t undo')
+            return
+        action = self.game.actions.pop()
+        action.inverse()
+
     # want harvest method here?
     def harvest(self, args):
         if not isinstance(args, tuple) or len(args) != 2:
@@ -367,7 +374,7 @@ class Phase:
         self.game.discard.extend([card] * (number - coins))
         player.fields[field_idx] = None
 
-        self.actions.append(ActionHarvest(self.game, player_idx, field_idx, number, coins))
+        self.game.actions.append(ActionHarvest(self.game, player_idx, field_idx, card, number, coins))
 
     def plant_from_offering(self, idxs):
         game = self.game
@@ -428,9 +435,11 @@ class PhaseI(Phase):
         actions = ['harvest']
         if self.game.offering:
             if len(self.game.offering) == 1:
-                actions.append('plant 0'.format(len(self.game.offering) - 1))
+                actions.append('plant 0'.format(len(self.game.offering) - 1))   # ???
             else:
                 actions.append('plant from offering <1..{}>'.format(len(self.game.offering)))
+        if self.game.actions:
+            actions.append('undo')
         actions.append('next')
         return actions
 
@@ -463,6 +472,9 @@ class PhaseI(Phase):
 
         if action is None:
             return
+
+        elif action == 'undo':
+            self.undo()
 
         # At end of phase, discard all of offering that hasn't been planted
         elif action == 'next':
@@ -505,6 +517,9 @@ class PhaseII(Phase):
         if self.num_planted >= 1 and cards_in_hand and not self.done_discarding:
             actions.append('discard')
 
+        if self.game.actions:
+            actions.append('undo')
+
         if self.num_planted >= 1:
             actions.append('next')
         return actions
@@ -527,6 +542,9 @@ class PhaseII(Phase):
 
         if action is None:
             return
+
+        elif action == 'undo':
+            self.undo()
 
         elif action == 'next':
             self.end_phase()
@@ -612,6 +630,9 @@ class PhaseIII(Phase):
         if any(self.game.offering):
             actions.append('plant')
 
+        if self.game.actions:
+            actions.append('undo')
+
         actions.append('next')
         return actions
 
@@ -673,6 +694,9 @@ class PhaseIII(Phase):
         if action is None:
             return
 
+        elif action == 'undo':
+            self.undo()
+
         elif action == 'next':
             self.end_phase()
 
@@ -716,7 +740,7 @@ class PhaseIV(Phase):
         game.actions = []
 
     def end_phase(self):
-        self.game.actions.append(ActionEndPhaseIV(self.game, self.game.curr_player))
+        #self.game.actions.append(ActionEndPhaseIV(self.game, self.game.curr_player))   # don't need; no voluntary actions in phase 4 and actions reset at beginning
         self.game.curr_player = (self.game.curr_player + 1) % self.game.num_players
         super().end_phase()
 
