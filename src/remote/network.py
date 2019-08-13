@@ -1,9 +1,12 @@
 import pickle
+
 from remote.usersession import UserSession
 import remote.namegen
-from typing import Dict
+from typing import Dict, Optional, List
 from types import SimpleNamespace
+from model import Model
 
+from state import Player, Game
 
 HEADERSIZE = 16
 sid_t = int        # A typing alias
@@ -45,6 +48,37 @@ class NetworkManager:
         self._sessions: Dict[sid_t, UserSession] = {}
         self.messages: Dict[sid_t, SimpleNamespace] = {}
         self.namegen = remote.namegen.NameGenerator()
+        self.new_game_queue = []
+        self.games = []
+
+    def handle_message_to_client(self, client, recv: bytes = b''):
+        print("Handle message to client")
+        stored = client.stored
+        stored.msg += recv
+        if stored.length is None:
+            if len(stored.msg) >= HEADERSIZE:
+                try:
+                    stored.length = int(stored.msg[:HEADERSIZE])
+                    stored.msg = stored.msg[HEADERSIZE:]
+                except ValueError as e:
+                    print("invalid header:", stored.msg[:HEADERSIZE])
+                    stored.length = None
+                    stored.msg = b''
+
+        if stored.length is not None:
+            # We've already read the header...
+            if len(stored.msg) >= stored.length:
+                # ...and we have the full message
+                full_message = pickle.loads(stored.msg[:stored.length])
+                client.handle(full_message)
+                remaining = stored.msg[stored.length:]
+                stored.length = None
+                stored.msg = b''
+
+                if remaining:
+                    # If there is any received message remaining, it must be the start
+                    # of a new message, so recursively call this method
+                    self.handle_message_to_client(client, remaining)
 
     def handle_message_to_session(self, sid: sid_t, recv: bytes = b''):
         """
@@ -93,18 +127,82 @@ class NetworkManager:
                     self.handle_message_to_session(sid, remaining)
 
     def new_session(self, conn, addr):
-        session = UserSession(conn, addr)
+        session = UserSession(conn, addr, self)
         self._sessions[session.sid] = session
-        self.namegen.generate_session_username(session)
-        print("Creating new UserSession with sid", session.sid, "and username", session.user_name)
+        print("Creating new UserSession with sid", session.sid, "and username", session.username)
         return session.sid
 
     def close_session(self, sid: sid_t):
         print("Closing session: sid", sid)
         self._sessions[sid].close()
+        del self._sessions[sid]
+        if sid in self.new_game_queue:
+            self.new_game_queue.remove(sid)
 
     def get_session(self, sid):
-        return self._sessions[sid]
+        return self._sessions.get(sid)
+
+    def add_to_new_game_queue(self, sid: sid_t):
+        if sid in self.new_game_queue:
+            return {"status": "failure", "reason": "already-in-queue"}
+        elif sid not in self._sessions:
+            return {"status": "failure", "reason": "unknown-sid"}
+        else:
+            self.new_game_queue.append(sid)
+
+        if len(self.new_game_queue) > 1:
+            self.start_new_games()
+
+    def start_new_games(self) -> List[Model]:
+        """
+        Start as many games as possible from the waiting queue
+        :return:
+        """
+        game = self.start_new_game()
+        games = []
+        while game:
+            games.append(game)
+            game = self.start_new_game()
+        self.games += games
+        return games
+
+    def start_new_game(self) -> Optional[Model]:
+        """
+        Check if a new game can be started, and if so, start it.
+        :return: the new Model object if a game was started, otherwise None
+        """
+        if len(self.new_game_queue) >= 2:
+            sid1, sid2 = self.new_game_queue[:2]
+            s1 = self._sessions[sid1]
+            s2 = self._sessions[sid2]
+            self.new_game_queue = self.new_game_queue[2:]
+
+            # Create associated players
+            p1, p2 = Player(s1.username), Player(s2.username)
+            game = Game([p1, p2])
+            s1.game = game
+            s2.game = game
+            print("Started game between {} and {}".format(p1.name, p2.name))
+            return Model(game)
+        else:
+            return None
+
+    def add_session_to_queue(self, sid: sid_t) -> Dict[str, str]:
+        if sid not in self._sessions:
+            return {"status": "failure",
+                    "reason": "inactive-session"}
+        if sid in self.new_game_queue:
+            return {"status": "failure",
+                    "reason": "sid-already-waiting"}
+        self.new_game_queue.append(sid)
+
+        return {"status": "success"}
+
+    def pack(self, msg) -> bytes:
+        return pack(msg)
+
+    def unpack(self, msg: bytes):
+        return unpack(msg)
 
 
 class PacketFormatError(RuntimeError):

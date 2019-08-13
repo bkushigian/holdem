@@ -42,7 +42,7 @@ class Server:
                 print("Replying with message", session.outb)
                 sent = sock.send(session.outb)
                 session.outb = session.outb[sent:]
-                print("sent", sent, "bytes")
+                print("sent", sent, "bytes from sid", sid)
 
     def run(self):
 
@@ -60,3 +60,4 @@ class Server:
                     self.accept_wrapper(key.fileobj)
                 else:
                     self.service_connection(key, mask)
+            self.nm.start_new_games()
