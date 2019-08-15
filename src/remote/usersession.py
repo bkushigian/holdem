@@ -7,17 +7,18 @@ from state import Game
 
 
 class UserSession(Actor):
-    _id = -1
 
     def __init__(self, conn, addr, network_manager, username=None):
         print("Creating user session")
+
+        super().__init__()
+
         self.conn = conn
         self.addr = addr
         self.nm = network_manager
         self.username = username
         self.state = State.NEW
 
-        self.sid = UserSession._new_id()
         self.game: Model = None
         self.on_exit = []           # A list of callables to call on exit
 
@@ -97,10 +98,5 @@ class UserSession(Actor):
             raise RuntimeError("Cannot start a game while not in waiting state!!!", self.state)
         self.game = game
         self.state = State.GAME
-
-    @staticmethod
-    def _new_id():
-        UserSession._id += 1
-        return UserSession._id
 
 

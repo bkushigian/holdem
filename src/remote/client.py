@@ -14,6 +14,9 @@ from remote.view import ClientViewCLI
 
 class Client(Actor):
     def __init__(self, host='127.0.0.1', port=65432, messages=None):
+
+        super().__init__()
+
         self.host = host
         self.port = port
         self.addr = (host, port)
@@ -25,7 +28,7 @@ class Client(Actor):
         self._up_to_date = True
         self.username = None
         self.data = None
-        self.sid = None
+        self.sid_from_server = None
         self.session_key = None
         self.stored = SimpleNamespace(length=None, msg=b'')
         self.game_state = None
@@ -93,7 +96,7 @@ class Client(Actor):
                 print("Error requesting new session, exiting")
                 exit(1)
             if status == 'success':
-                self.sid = data['sid']
+                self.sid_from_server = data['sid']
                 self.session_key = data['key']
                 self.state = ClientState.RECV_SESSION
 
