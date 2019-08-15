@@ -32,7 +32,7 @@ class Server:
         if mask & selectors.EVENT_READ:
             recv_data = sock.recv(1024)
             if recv_data:
-                self.nm.handle_message_to_session(session=session, recv=recv_data)
+                self.nm.handle_message_to_actor(actor=session, recv=recv_data)
             else:
                 print('closing connection to', session.addr)
                 self.nm.close_session(sid)

@@ -1,5 +1,6 @@
 import pickle
 
+from remote.actor import Actor
 from remote.usersession import UserSession
 import remote.namegen
 from typing import Dict, Optional, List
@@ -53,46 +54,18 @@ class NetworkManager:
         self.new_game_queue = []
         self.games = []
 
-    def handle_message_to_client(self, client, recv: bytes = b''):
-        stored = client.stored
-        stored.msg += recv
-        if stored.length is None:
-            if len(stored.msg) >= HEADERSIZE:
-                try:
-                    stored.length = int(stored.msg[:HEADERSIZE])
-                    stored.msg = stored.msg[HEADERSIZE:]
-                except ValueError as e:
-                    print("invalid header:", stored.msg[:HEADERSIZE])
-                    stored.length = None
-                    stored.msg = b''
-
-        if stored.length is not None:
-            # We've already read the header...
-            if len(stored.msg) >= stored.length:
-                # ...and we have the full message
-                full_message = pickle.loads(stored.msg[:stored.length])
-                client.handle(full_message)
-                remaining = stored.msg[stored.length:]
-                stored.length = None
-                stored.msg = b''
-
-                if remaining:
-                    # If there is any received message remaining, it must be the start
-                    # of a new message, so recursively call this method
-                    self.handle_message_to_client(client, remaining)
-
-    def handle_message_to_session(self, session: UserSession, recv: bytes = b''):
+    def handle_message_to_actor(self, actor: Actor, recv: bytes = b''):
         """
         Given a possibly incomplete incoming message to a `UserSession` with
         session id `sid`, unpack it and reconstruct it over multiple passes if
         necessary.
 
-        :param session: the session that the message is for
+        :param actor: the session that the message is for
         :param recv: the pickled message to be unpacked; this may be a
             partial message, in which case the intermediary results are stored
             for later continuation.
         """
-        sid = session.sid
+        sid = actor.sid
 
         if sid not in self.messages:
             self.messages[sid] = SimpleNamespace(length=None, msg=b'')
@@ -118,14 +91,14 @@ class NetworkManager:
             if len(stored.msg) >= stored.length:
                 # ...and we have the full message
                 full_message = pickle.loads(stored.msg[:stored.length])
-                session.handle(full_message)
+                actor.handle(full_message)
                 remaining = stored.msg[stored.length:]
                 del self.messages[sid]
 
                 if remaining:
                     # If there is any received message remaining, it must be the start
                     # of a new message, so recursively call this method
-                    self.handle_message_to_session(session, remaining)
+                    self.handle_message_to_actor(actor, remaining)
 
     def new_session(self, conn, addr):
         session = UserSession(conn, addr, self)

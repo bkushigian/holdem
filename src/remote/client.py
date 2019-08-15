@@ -29,7 +29,6 @@ class Client(Actor):
         self.username = None
         self.sid_from_server = None
         self.session_key = None
-        self.stored = SimpleNamespace(length=None, msg=b'')
         self.game_state = None
         self.view = None
         self.controller = None
@@ -49,7 +48,7 @@ class Client(Actor):
         if mask & selectors.EVENT_READ:
             recv_data = sock.recv(1024)
             if recv_data:
-                self.nm.handle_message_to_client(self, recv_data)
+                self.nm.handle_message_to_actor(self, recv_data)
             if not recv_data:
                 print('closing connection')
                 self.sel.unregister(sock)
