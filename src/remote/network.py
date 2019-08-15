@@ -81,19 +81,17 @@ class NetworkManager:
                     # of a new message, so recursively call this method
                     self.handle_message_to_client(client, remaining)
 
-    # def handle_message_to_session(self, sid: sid_t, recv: bytes = b''):
     def handle_message_to_session(self, session: UserSession, recv: bytes = b''):
         """
         Given a possibly incomplete incoming message to a `UserSession` with
         session id `sid`, unpack it and reconstruct it over multiple passes if
         necessary.
 
-        :param sid: the session id of the target session
+        :param session: the session that the message is for
         :param recv: the pickled message to be unpacked; this may be a
             partial message, in which case the intermediary results are stored
             for later continuation.
         """
-        # session: UserSession = self._sessions[sid]
         sid = session.sid
 
         if sid not in self.messages:
