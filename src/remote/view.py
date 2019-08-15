@@ -78,11 +78,11 @@ class Formatter:
         Print a string representation of the player without any private info,
         such as cards in hand.
         """
-        return """  * \033[1m{}\033[0m: \033[32;1m{} Cards\033[0m || \033[32;1m${}\033[0m || \033[32;1m[{}]\033[0m""".format(
+        return """  * \033[1m{}\033[0m: \033[32;1m{} Cards\033[0m || \033[32;1m${}\033[0m || \033[32;1m{}\033[0m""".format(
             player.name,
             player.hand_size,
             player.coins,
-            ', '.join([str(c) if c else 'Fallow' for c in player.fields]))
+            '  '.join(['{}x {}'.format(c[1], c[0]) if c else 'Fallow' for c in player.fields]))
 
     def discard_string(self):
         d = self.game_state.discard
