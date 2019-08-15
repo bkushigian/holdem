@@ -19,7 +19,7 @@ class ClientControllerCLI(Controller):
 
         phase = self.view.game_state.phase
         if not cmd.strip():
-            return d
+            return {'type': 'empty', 'data': None}
 
         cmd = cmd.split(maxsplit=2)     # but what if 2 spaces b/w first and second word?
 
@@ -42,8 +42,9 @@ class ClientControllerCLI(Controller):
 
             elif action.lower() in ('harvest', 'h'):
                 if args and args.isdigit():
-                    d = {'action': 'harvest', 'args': (int(args) - 1, )}
-                return self.report_error(1, 'invalid argument for harvest')
+                    d = {'action': 'harvest', 'args': (self.client.game_state.owner,  int(args) - 1)}
+                else:
+                    return self.report_error(1, 'invalid argument for harvest')
 
             elif action.lower() in ('next', 'n'):
                 d = {'action': 'next', 'args': ()}

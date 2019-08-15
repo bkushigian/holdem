@@ -21,6 +21,7 @@ class Client:
         self.sel = selectors.DefaultSelector()
         self.nm = NetworkManager()
         self.state = ClientState.NEW
+        self._up_to_date = True
         self.username = None
         self.data = None
         self.sid = None
@@ -61,7 +62,6 @@ class Client:
             if data.outb:
                 sent = sock.send(data.outb)
                 data.outb = data.outb[sent:]
-                time.sleep(0.5)
 
     def handle(self, msg):
         self.transition_read(msg)
@@ -112,6 +112,7 @@ class Client:
             status = data['status']
             if status == 'success':
                 self.game_state = data['game-state']
+                self._up_to_date = True
                 self.view = ClientViewCLI(self.game_state)
                 self.controller = ClientControllerCLI(self)
                 self.state = ClientState.GAME
@@ -121,6 +122,7 @@ class Client:
             if tp != 'game-state-update':
                 raise ValueError("expected game-state-update but got " + str(tp))
             self.game_state = data['game-state']
+            self._up_to_date = True
             self.view.game_state.update(self.game_state)
             self.view.render()
 
@@ -158,16 +160,18 @@ class Client:
 
         elif state == ClientState.GAME:
             gs = self.game_state
-            if gs.current_player == gs.owner:
+            if gs.current_player == gs.owner and self._up_to_date:
                 cmd = input('\033[1mEnter\033[0m <action> [args...]\n\033[{};1m({}) >>>\033[0m '.format(
                     self.view.formatter.player_colors[gs.current_player],
                     gs.players[gs.current_player].name))
                 msg = self.controller.process(cmd)
                 if msg['type'] == 'error':
                     print("error:", msg)
+                elif msg['type'] == 'empty':
+                    self.view.render()
                 else:
                     data.outb += self.nm.pack(msg)
-                    self.view.render()
+                    self._up_to_date = False
 
     def send_to_model(self, d):
         self.data.outb += self.nm.pack(d)
