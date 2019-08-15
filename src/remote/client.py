@@ -176,7 +176,6 @@ class Client:
         self.data.outb += self.nm.pack(d)
 
     def run(self):
-        print("running client")
         self.start_connections()
         try:
             while True:
