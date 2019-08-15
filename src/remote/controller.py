@@ -1,5 +1,5 @@
 from controller import Controller
-from state import *
+from state import PhaseGameOver, PhaseI, PhaseII, PhaseIII, PhaseIV
 
 
 class ClientControllerCLI(Controller):

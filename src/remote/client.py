@@ -1,5 +1,4 @@
 import socket
-import time
 import selectors
 from types import SimpleNamespace
 
