@@ -82,7 +82,7 @@ class Formatter:
             player.name,
             player.hand_size,
             player.coins,
-            ', '.join([str(c) if c else 'Fallow' for c in player.fields ]))
+            ', '.join([str(c) if c else 'Fallow' for c in player.fields]))
 
     def discard_string(self):
         d = self.game_state.discard
