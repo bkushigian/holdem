@@ -8,6 +8,8 @@ if len(argv) > 1:
 
 if len(argv) > 2:
     host = argv[2]
+    if host == 'all':
+        host = ''
 
 server = Server(host=host, port=port)
 server.run()
