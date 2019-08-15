@@ -88,7 +88,7 @@ class Formatter:
         d = self.game_state.discard
         if len(d) <= 3:
             return "[{}]".format(','.join([str(x) for x in d]))
-        return "[{}]".format(','.join([str(x) for x in d[3:]]))
+        return "[{}]".format(','.join([str(x) for x in d[-3:]]))
 
     def deck_string(self):
         return "{} Cards".format(self.game_state.deck_size)
