@@ -78,11 +78,12 @@ class Formatter:
         Print a string representation of the player without any private info,
         such as cards in hand.
         """
-        return """  * \033[1m{}\033[0m: \033[32;1m{} Cards\033[0m || \033[32;1m${}\033[0m || \033[32;1m{}\033[0m""".format(
+        return """  * \033[1m{}\033[0m: \033[32;1m{} Cards\033[0m || \033[32;1m${} \033[97;1m({})\033[0m || \033[32;1m{}\033[0m""".format(
             player.name,
             player.hand_size,
             player.coins,
-            '  '.join(['{}x {}'.format(c[1], c[0]) if c else 'Fallow' for c in player.fields]))
+            player.coins + sum([c[0][c[1]] if c else 0 for c in player.fields]),
+            '  '.join(['\033[97;1m{}x\033[32;1m {}'.format(c[1], c[0]) if c else '\033[31;1mFallow\033[32;1m' for c in player.fields]))
 
     def discard_string(self):
         d = self.game_state.discard
@@ -112,9 +113,12 @@ class Formatter:
     def offering_and_field_string(self):
         os = self.offering_string().split('\n')
         fs = self.field_string().split('\n')
+        curr = self.game_state.players[self.game_state.owner]
+        coins = curr.coins
+        fields = curr.fields
 
         footer = '\033[1;34;7m{:^36}\033[0m\033[1;32m{:^8}\033[0m\033[1;34;7m{:^36}\033[0m\n'.format("Offerings", "${}".format(
-            self.game_state.players[self.game_state.owner].coins), "Fields")
+            coins), "Fields")
         return '\n'.join([o + '        ' + f for (o, f) in zip(os, fs)]) + '\n' + footer
 
     def offering_string(self):
