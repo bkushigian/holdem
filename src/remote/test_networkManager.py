@@ -31,7 +31,7 @@ class TestNetworkManager(TestCase):
         s = nm.get_session(sid)
         d = {i: str(i) for i in range(20)}
         packed_d = pack(d)
-        nm.handle_message_to_session(sid, packed_d)
+        nm.handle_message_to_session(s, packed_d)
         self.assertEqual(1, len(s.recv))
         self.assertEqual(d, s.recv[-1])
 
@@ -39,7 +39,7 @@ class TestNetworkManager(TestCase):
         packed_e = pack(e)
         for pck in split_into_packets(packed_e, packet_size=32):
             self.assertEqual(1, len(s.recv))
-            nm.handle_message_to_session(sid, pck)
+            nm.handle_message_to_session(s, pck)
         self.assertEqual(2, len(s.recv))
         self.assertEqual(e, s.recv[-1])
         self.assertEqual(d, s.recv[-2])
@@ -47,7 +47,7 @@ class TestNetworkManager(TestCase):
         packed_2 = packed_e + packed_d
 
         for p in split_into_packets(packed_2, packet_size=100):
-            nm.handle_message_to_session(sid, p)
+            nm.handle_message_to_session(s, p)
         self.assertEqual(4, len(s.recv))
         self.assertEqual(d, s.recv[-1])
         self.assertEqual(e, s.recv[-2])

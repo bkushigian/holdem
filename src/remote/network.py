@@ -81,7 +81,8 @@ class NetworkManager:
                     # of a new message, so recursively call this method
                     self.handle_message_to_client(client, remaining)
 
-    def handle_message_to_session(self, sid: sid_t, recv: bytes = b''):
+    # def handle_message_to_session(self, sid: sid_t, recv: bytes = b''):
+    def handle_message_to_session(self, session: UserSession, recv: bytes = b''):
         """
         Given a possibly incomplete incoming message to a `UserSession` with
         session id `sid`, unpack it and reconstruct it over multiple passes if
@@ -92,7 +93,8 @@ class NetworkManager:
             partial message, in which case the intermediary results are stored
             for later continuation.
         """
-        session: UserSession = self._sessions[sid]
+        # session: UserSession = self._sessions[sid]
+        sid = session.sid
 
         if sid not in self.messages:
             self.messages[sid] = SimpleNamespace(length=None, msg=b'')
@@ -125,7 +127,7 @@ class NetworkManager:
                 if remaining:
                     # If there is any received message remaining, it must be the start
                     # of a new message, so recursively call this method
-                    self.handle_message_to_session(sid, remaining)
+                    self.handle_message_to_session(session, remaining)
 
     def new_session(self, conn, addr):
         session = UserSession(conn, addr, self)
