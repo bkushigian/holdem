@@ -1,7 +1,9 @@
 import socket
 import selectors
 from types import SimpleNamespace
+from typing import Any, Dict
 
+from remote.actor import Actor
 from remote.controller import ClientControllerCLI
 from remote.network import NetworkManager, pack
 from sys import exit
@@ -10,7 +12,7 @@ from remote.states import ClientState
 from remote.view import ClientViewCLI
 
 
-class Client:
+class Client(Actor):
     def __init__(self, host='127.0.0.1', port=65432, messages=None):
         self.host = host
         self.port = port
@@ -62,7 +64,7 @@ class Client:
                 sent = sock.send(data.outb)
                 data.outb = data.outb[sent:]
 
-    def handle(self, msg):
+    def handle(self, msg: Dict[str, Any]):
         self.transition_read(msg)
 
     def transition_read(self, msg):

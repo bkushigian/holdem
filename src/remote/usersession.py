@@ -1,9 +1,12 @@
+from typing import Dict, Any
+
 from model import Model
+from remote.actor import Actor
 from remote.states import UserSessionState as State
 from state import Game
 
 
-class UserSession:
+class UserSession(Actor):
     _id = -1
 
     def __init__(self, conn, addr, network_manager, username=None):
@@ -27,7 +30,7 @@ class UserSession:
         if self.conn:
             self.conn.close()
 
-    def handle(self, msg: bytes):
+    def handle(self, msg: Dict[str, Any]):
         """
         Handle an incoming message
         :param msg: unpacked message
