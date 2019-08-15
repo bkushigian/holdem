@@ -102,6 +102,11 @@ class ViewGameState:
                              error=error,
                              available_actions=phase.get_valid_actions())
 
+    def __str__(self):
+        return """ViewGameState(phase:{},owner:{},current_player:{},hand:{},deck_size:{},offering:{})""".format(
+            self.phase, self.owner, self.current_player, self.hand, self.deck_size, self.offering
+        )
+
 
 class ViewPlayer:
     def __init__(self, name, hand_size, fields, coins):

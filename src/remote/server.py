@@ -39,10 +39,8 @@ class Server:
                 self.sel.unregister(sock)
         if mask & selectors.EVENT_WRITE:
             if session.outb:
-                print("Replying with message", session.outb)
                 sent = sock.send(session.outb)
                 session.outb = session.outb[sent:]
-                print("sent", sent, "bytes from sid", sid)
 
     def run(self):
 

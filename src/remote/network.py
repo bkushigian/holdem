@@ -5,8 +5,10 @@ import remote.namegen
 from typing import Dict, Optional, List
 from types import SimpleNamespace
 from model import Model
+from remote.view import ServerView
 
 from state import Player, Game
+from view import ViewGameState
 
 HEADERSIZE = 16
 sid_t = int        # A typing alias
@@ -52,7 +54,6 @@ class NetworkManager:
         self.games = []
 
     def handle_message_to_client(self, client, recv: bytes = b''):
-        print("Handle message to client")
         stored = client.stored
         stored.msg += recv
         if stored.length is None:
@@ -180,9 +181,20 @@ class NetworkManager:
             # Create associated players
             p1, p2 = Player(s1.username), Player(s2.username)
             game = Game([p1, p2])
-            s1.game = game
-            s2.game = game
+            model = Model(game)
+            model.register_view(ServerView(sid1, self))
+            model.register_view(ServerView(sid2, self))
+            s1.start_game(model)
+            s2.start_game(model)
             print("Started game between {} and {}".format(p1.name, p2.name))
+            s1.outb += self.pack({'type': 'new-game-request-reply',
+                                  'data': {'status': 'success',
+                                           'game-state': ViewGameState.from_game(game, 0),
+                                           'player-number': 0}})
+            s2.outb += self.pack({'type': 'new-game-request-reply',
+                                  'data': {'status': 'success',
+                                           'game-state': ViewGameState.from_game(game, 1),
+                                           'player-number': 1}})
             return Model(game)
         else:
             return None

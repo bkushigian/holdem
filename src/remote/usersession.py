@@ -15,7 +15,7 @@ class UserSession:
         self.state = State.NEW
 
         self.sid = UserSession._new_id()
-        self.game = None
+        self.game: Model = None
         self.on_exit = []           # A list of callables to call on exit
 
         self.outb = b''       # outgoing message
@@ -43,7 +43,7 @@ class UserSession:
 
         state = self.state
 
-        print("handle tp:{} data: {} state: {}".format(tp, data, state))
+        print("handle()---sid:{} tp:{} data: {} state: {}".format(self.sid, tp, data, state))
         if state == State.NEW:
             if tp != "session-initialization":
                 self.mark_illegal_state(state, tp, "expected message of type 'session-initialization'")
@@ -73,13 +73,17 @@ class UserSession:
         elif state == State.FRESH:
             if tp != 'new-game-request':
                 self.mark_illegal_state(state, tp, "expected message of type 'new-game-request'")
+            self.state = State.GAME_QUEUE
             self.nm.add_to_new_game_queue(self.sid)
+            print('adding to game queue', self.sid)
 
         elif state == State.GAME_QUEUE:
             pass
 
         elif state == State.GAME:
-            pass
+            if tp != 'game-action':
+                self.mark_illegal_state(state, tp, "expected message of type 'game-action'")
+            self.game.update(**data)
 
     def mark_illegal_state(self, state, tp, message=''):
         raise ValueError("In state {}: cannot transfer on {}{}".format(
@@ -87,7 +91,7 @@ class UserSession:
 
     def start_game(self, game: Model):
         if self.state is not State.GAME_QUEUE:
-            raise RuntimeError("Cannot start a game while not in waiting state!!!")
+            raise RuntimeError("Cannot start a game while not in waiting state!!!", self.state)
         self.game = game
         self.state = State.GAME
 

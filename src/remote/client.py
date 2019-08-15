@@ -2,10 +2,13 @@ import socket
 import time
 import selectors
 from types import SimpleNamespace
+
+from remote.controller import ClientControllerCLI
 from remote.network import NetworkManager, pack
 from sys import exit
 
 from remote.states import ClientState
+from remote.view import ClientViewCLI
 
 
 class Client:
@@ -23,6 +26,9 @@ class Client:
         self.sid = None
         self.session_key = None
         self.stored = SimpleNamespace(length=None, msg=b'')
+        self.game_state = None
+        self.view = None
+        self.controller = None
 
     def start_connections(self):
         server_addr = self.addr
@@ -53,9 +59,7 @@ class Client:
             if not data.outb:
                 self.transition_write(data)
             if data.outb:
-                print('sending', repr(data.outb), 'to connection')
                 sent = sock.send(data.outb)
-                print('sent', sent, 'bytes')
                 data.outb = data.outb[sent:]
                 time.sleep(0.5)
 
@@ -78,7 +82,6 @@ class Client:
         tp = msg['type']
         data = msg['data']
         state = self.state
-        print("transition_read: state:{} tp:{} data:{}".format(state, tp, data))
 
         if state == ClientState.REQ_SESSION:
             if tp != "session-initialization-reply":
@@ -94,12 +97,32 @@ class Client:
                 self.state = ClientState.RECV_SESSION
 
         elif state == ClientState.SENT_GREETING:
+            if tp != 'greeting-reply':
+                raise ValueError("expected greeting-reply but got " + str(tp))
             status = data['status']
             if status == 'success':
                 self.username = data['username']
                 print("Started session as", self.username)
                 self.username = data['username']
                 self.state = ClientState.FRESH
+
+        elif state == ClientState.REQ_GAME:
+            if tp != 'new-game-request-reply':
+                raise ValueError("expected new-game-request-reply but got " + str(tp))
+            status = data['status']
+            if status == 'success':
+                self.game_state = data['game-state']
+                self.view = ClientViewCLI(self.game_state)
+                self.controller = ClientControllerCLI(self)
+                self.state = ClientState.GAME
+                self.view.render()
+
+        elif state == ClientState.GAME:
+            if tp != 'game-state-update':
+                raise ValueError("expected game-state-update but got " + str(tp))
+            self.game_state = data['game-state']
+            self.view.game_state.update(self.game_state)
+            self.view.render()
 
     def transition_write(self, data):
         """
@@ -108,7 +131,6 @@ class Client:
         :return:
         """
         state = self.state
-        print("transition_write: state:{}".format(state))
 
         if self.state == ClientState.CONNECTED:
             data.outb += pack({"type": "session-initialization", "data": {"sid": None}})
@@ -134,17 +156,30 @@ class Client:
             data.outb += pack({"type": "new-game-request", "data": None})
             self.state = ClientState.REQ_GAME
 
+        elif state == ClientState.GAME:
+            gs = self.game_state
+            if gs.current_player == gs.owner:
+                cmd = input('\033[1mEnter\033[0m <action> [args...]\n\033[{};1m({}) >>>\033[0m '.format(
+                    self.view.formatter.player_colors[gs.current_player],
+                    gs.players[gs.current_player].name))
+                msg = self.controller.process(cmd)
+                if msg['type'] == 'error':
+                    print("error:", msg)
+                else:
+                    data.outb += self.nm.pack(msg)
+                    self.view.render()
+
+    def send_to_model(self, d):
+        self.data.outb += self.nm.pack(d)
 
     def run(self):
         print("running client")
         self.start_connections()
         try:
             while True:
-                time.sleep(0.5)
                 events = self.sel.select(timeout=1)
                 if events:
                     for key, mask in events:
-                        print('mask', mask)
                         self.service_connection(key, mask)
                 if not self.sel.get_map():
                     break
