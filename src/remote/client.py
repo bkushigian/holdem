@@ -27,7 +27,6 @@ class Client(Actor):
         self.state = ClientState.NEW
         self._up_to_date = True
         self.username = None
-        self.data = None
         self.sid_from_server = None
         self.session_key = None
         self.stored = SimpleNamespace(length=None, msg=b'')
@@ -42,30 +41,25 @@ class Client(Actor):
         sock.setblocking(False)
         sock.connect_ex(server_addr)
         events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        self.data = SimpleNamespace(recv_total=0,
-                                    send_total=0,
-                                    outb=b'')
-        self.sel.register(sock, events, data=self.data)
+        self.sel.register(sock, events)
         self.state = ClientState.CONNECTED
 
     def service_connection(self, key, mask):
         sock = key.fileobj
-        data = key.data
         if mask & selectors.EVENT_READ:
             recv_data = sock.recv(1024)
             if recv_data:
                 self.nm.handle_message_to_client(self, recv_data)
-                data.recv_total += 1
-            if not recv_data or data.send_total >= 5:
+            if not recv_data:
                 print('closing connection')
                 self.sel.unregister(sock)
                 sock.close()
         if mask & selectors.EVENT_WRITE:
-            if not data.outb:
-                self.transition_write(data)
-            if data.outb:
-                sent = sock.send(data.outb)
-                data.outb = data.outb[sent:]
+            if not self.outb:
+                self.transition_write()
+            if self.outb:
+                sent = sock.send(self.outb)
+                self.outb = self.outb[sent:]
 
     def handle(self, msg: Dict[str, Any]):
         self.transition_read(msg)
@@ -130,16 +124,16 @@ class Client(Actor):
             self.view.game_state.update(self.game_state)
             self.view.render()
 
-    def transition_write(self, data):
+    def transition_write(self):
         """
-        Handle outgoing messages, writing to data.outb and updating state appropriately
+        Handle outgoing messages, writing to self.outb and updating state appropriately
         :param data:
         :return:
         """
         state = self.state
 
         if self.state == ClientState.CONNECTED:
-            data.outb += pack({"type": "session-initialization", "data": {"sid": None}})
+            self.outb += pack({"type": "session-initialization", "data": {"sid": None}})
             self.state = ClientState.REQ_SESSION
 
         elif state == ClientState.RECV_SESSION:
@@ -154,12 +148,12 @@ class Client(Actor):
             if not name:
                 name = None
 
-            data.outb += pack({"type": "greeting", "data": {"username": name}})
+            self.outb += pack({"type": "greeting", "data": {"username": name}})
             self.state = ClientState.SENT_GREETING
 
         elif state == ClientState.FRESH:
             print("Requesting game from server...")
-            data.outb += pack({"type": "new-game-request", "data": None})
+            self.outb += pack({"type": "new-game-request", "data": None})
             self.state = ClientState.REQ_GAME
 
         elif state == ClientState.GAME:
@@ -174,11 +168,11 @@ class Client(Actor):
                 elif msg['type'] == 'empty':
                     self.view.render()
                 else:
-                    data.outb += self.nm.pack(msg)
+                    self.outb += self.nm.pack(msg)
                     self._up_to_date = False
 
     def send_to_model(self, d):
-        self.data.outb += self.nm.pack(d)
+        self.outb += self.nm.pack(d)
 
     def run(self):
         self.start_connections()

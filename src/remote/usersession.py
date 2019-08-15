@@ -22,7 +22,6 @@ class UserSession(Actor):
         self.game: Model = None
         self.on_exit = []           # A list of callables to call on exit
 
-        self.outb = b''       # outgoing message
         self.recv = []        # Recieved messages
 
     def close(self):
