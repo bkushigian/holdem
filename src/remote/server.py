@@ -1,5 +1,7 @@
 import socket
 import selectors
+import time
+
 from remote.network import NetworkManager, pack
 from typing import List
 from remote.util import sid_t
@@ -59,3 +61,4 @@ class Server:
                 else:
                     self.service_connection(key, mask)
             self.nm.start_new_games()
+            time.sleep(0)    # Share the love (i.e., the cpu)
