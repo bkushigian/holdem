@@ -203,9 +203,7 @@ class Phase:
         # game.actions.append(ActionPlantFromOffering(game, game.curr_player, offering_copy, fields_copy))
         game.actions.append(ActionPlantFromOffering(self.game, self.game.curr_player, action_info_list))
 
-# assumes want to plant all of something
-# want to add separate discard action in future?
-# want harvest to take a list instead of single?
+
 class PhaseI(Phase):
     def get_valid_actions(self):
 
