@@ -1,7 +1,6 @@
 import socket
 import selectors
 import time
-from types import SimpleNamespace
 from typing import Any, Dict
 
 from remote.actor import Actor
