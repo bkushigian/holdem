@@ -1,8 +1,7 @@
 from unittest import TestCase
 from game import *
 from model import Model
-from cli.view import ViewCLI
-from view import *
+
 
 class TestModel(TestCase):
     def new_game(self):

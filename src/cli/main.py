@@ -1,5 +1,6 @@
 from sys import argv
-from game import Player, Card, Game
+from game import Player, Game
+from cards import Card
 from cli.view import ViewCLI
 
 
