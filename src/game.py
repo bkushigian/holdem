@@ -575,38 +575,3 @@ class TwoPlayerPhases:
 
         def __str__(self):
             return 'Game Over'
-
-
-class State:
-    def __init__(self, name=None):
-        self.actions = []
-        self.name = name
-
-    def add_action(self, name, target, desc=''):
-        self.actions.append(Action(name, target, desc))
-
-
-class StateMachine:
-
-    def __init__(self, names, actions):
-        self.actions_matrix = actions
-        self.states = [State(name) for name in names]
-        for i, row in enumerate(self.states):
-            for j, (action, desc) in enumerate(self.states):
-                self.states[i].add_action(action, self.states[j], desc=desc)
-        self.current_action = None
-
-    def reset(self):
-        pass
-
-    def get_states(self):
-        raise NotImplementedError('StateMachine.get_states is abstract')
-
-    def get_current_state(self):
-        raise NotImplementedError('StateMachine.get_current_state is abstract')
-
-    def get_available_actions(self):
-        raise NotImplementedError('StateMachine.get_available_actions is abstract')
-
-    def take_action(self, action, *args):
-        raise NotImplementedError('StateMachine.take_action is abstract')
