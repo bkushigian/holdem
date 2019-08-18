@@ -1,5 +1,5 @@
 from controller import Controller
-from phases.pl2 import TwoPlayerPhases
+from phases import pl2
 
 
 class ClientControllerCLI(Controller):
@@ -37,7 +37,7 @@ class ClientControllerCLI(Controller):
             if len(cmd) > 1:
                 args = cmd[1]
 
-            if isinstance(self.view.game_state.phase, TwoPlayerPhases.PhaseGameOver):
+            if isinstance(self.view.game_state.phase, pl2.PhaseGameOver):
                 return self.report_error(1, 'invalid action for game over')
 
             elif action.lower() in ('harvest', 'h'):
@@ -52,7 +52,7 @@ class ClientControllerCLI(Controller):
             elif action.lower() in ('undo', 'u'):
                 d = {'action': 'undo', 'args': None}
 
-            elif isinstance(phase, TwoPlayerPhases.PhaseI):
+            elif isinstance(phase, pl2.PhaseI):
                 if action.lower() in ('plant', 'p'):
                     if args is None:
                         return self.report_error(1, 'missing argument to plant')
@@ -68,7 +68,7 @@ class ClientControllerCLI(Controller):
                 else:
                     return self.report_error(1, 'invalid action for Phase {}'.format(phase))  # ?
 
-            elif isinstance(phase, TwoPlayerPhases.PhaseII):
+            elif isinstance(phase, pl2.PhaseII):
                 if action.lower() in ('plant', 'p'):
                     d = {'action': 'plant', 'args': None}
                 elif action.lower() in ('discard', 'd'):
@@ -85,7 +85,7 @@ class ClientControllerCLI(Controller):
                 else:
                     return self.report_error(1, 'invalid action for Phase {}'.format(phase))  # ?
 
-            elif isinstance(phase, TwoPlayerPhases.PhaseIII):
+            elif isinstance(phase, pl2.PhaseIII):
                 if action.lower() in ('plant', 'p'):
                     if args is None:
                         return self.report_error(1, 'missing argument to plant')
@@ -103,7 +103,7 @@ class ClientControllerCLI(Controller):
                 else:
                     return self.report_error(1, 'invalid action for Phase {}'.format(phase))
 
-            elif isinstance(phase, TwoPlayerPhases.PhaseIV):
+            elif isinstance(phase, pl2.PhaseIV):
                 if action.lower() in ('draw', 'd'):
                     d = {'action': 'draw', 'args': None}
                 elif action.lower() in ('next', 'n'):

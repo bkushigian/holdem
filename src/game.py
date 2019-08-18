@@ -2,7 +2,7 @@
 All things statey
 """
 from cards import Card
-from phases.pl2 import TwoPlayerPhases
+from phases import pl2, pl3
 
 
 class Player:
@@ -36,8 +36,8 @@ class Game:
         self.actions = []
 
         if len(players) == 2:
-            self.phase = TwoPlayerPhases.PhaseI(self)
-            self.phase_game_over = TwoPlayerPhases.PhaseGameOver(self)
+            self.phase = pl2.PhaseI(self)
+            self.phase_game_over = pl2.PhaseGameOver(self)
             self.phase.create_phases()
             self.phase = self.phase.next
 
