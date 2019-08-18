@@ -70,6 +70,9 @@ class Formatter:
         else:
             return ""
 
+    def get_coins_on_board(self, player):
+        return player.coins + sum([c[0][c[1]] if c else 0 for c in player.fields])
+
     def phase_string(self):
         return "{:^80}".format("-+- PHASE {} -+-".format(self.game_state.phase))
 
@@ -82,7 +85,7 @@ class Formatter:
             player.name,
             player.hand_size,
             player.coins,
-            player.coins + sum([c[0][c[1]] if c else 0 for c in player.fields]),
+            self.get_coins_on_board(player),
             '  '.join(['\033[97;1m{}x\033[32;1m {}'.format(c[1], c[0]) if c else '\033[31;1mFallow\033[32;1m' for c in player.fields]))
 
     def discard_string(self):
@@ -114,12 +117,13 @@ class Formatter:
         os = self.offering_string().split('\n')
         fs = self.field_string().split('\n')
         curr = self.game_state.players[self.game_state.owner]
-        coins = curr.coins
-        fields = curr.fields
 
-        footer = '\033[1;34;7m{:^36}\033[0m\033[1;32m{:^8}\033[0m\033[1;34;7m{:^36}\033[0m\n'.format("Offerings", "${}".format(
-            coins), "Fields")
-        return '\n'.join([o + '        ' + f for (o, f) in zip(os, fs)]) + '\n' + footer
+        footer = '\033[1;34;7m{:^36}\033[0m\033[1;97m{:^8}\033[0m\033[1;34;7m{:^36}\033[0m\n'.format("Offerings", "${}".format(
+            self.get_coins_on_board(curr)), "Fields")
+        zipped = list(zip(os, fs))
+        card_strings = '\n'.join([o + '        ' + f for (o, f) in zipped[:-1]])
+        footer_1 = os[-1] + '\033[1;32m{:^8}\033[0m'.format('${}'.format(curr.coins)) + fs[-1]
+        return card_strings + '\n' + footer_1 + '\n' + footer
 
     def offering_string(self):
         lines = ['', '', '', '', '', '', '', '', '']
