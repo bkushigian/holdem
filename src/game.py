@@ -73,17 +73,6 @@ class ActionEndPhaseI(Action):
 
 class ActionPlantFromOffering(Action):
 
-    # def __init__(self, game, player, offering, fields):
-    #     """
-    #     :param game: game reference
-    #     :param player: index
-    #     :param offering: list of tuples for the offering before planting
-    #     :param fields: list of tuples for the player's fields before planting
-    #     """
-    #     super().__init__(game, player)
-    #     self.offering = offering
-    #     self.fields = fields
-
     def __init__(self, game, player, index_list):
         """
         :param game: game reference
@@ -93,10 +82,6 @@ class ActionPlantFromOffering(Action):
         super().__init__(game, player)
         self.index_list = index_list
 
-    # def inverse(self):
-    #     self.game.players[self.player].fields = self.fields
-    #     self.game.offering = self.offering
-
     def inverse(self):
         for off_index, card, number, field_index in self.index_list:
             fields = self.game.players[self.player].fields
@@ -104,9 +89,6 @@ class ActionPlantFromOffering(Action):
             if fields[field_index][1] == 0:
                 fields[field_index] = None
             self.game.offering[off_index] = (card, number)
-
-
-#class ActionEndPhaseII(Action):    # can't undo b/c draw from deck in start of phase 3
 
 
 class ActionPlantPhaseII(Action):
@@ -145,19 +127,6 @@ class ActionDiscard(Action):
         self.game.players[self.player].hand.insert(self.index, card)
         self.game.phase.done_discarding = False
 
-
-#class ActionEndPhaseIII(Action):
-
-#class ActionPlantPhaseIII(Action):
-
-#class ActionDrawPhaseIII(Action):
-
-# class ActionEndPhaseIV(Action):
-#     def inverse(self):
-#         self.game.curr_player = self.player
-#         self.game.phase = self.game.phase.next.next.next   # go back to phase 4
-
-#class ActionDrawPhaseIV(Action):
 
 class Game:
     def __init__(self, players):
@@ -581,7 +550,6 @@ class PhaseIII(Phase):
                 self.game_over = True
                 break
 
-        # TODO: Continue code review!!!!
         # While the top card in discard pile matches a card in the offering, add it to the offering.
         check_next_discard = True   # True while want to continue checking the top card in discard pile
         while check_next_discard:
@@ -654,13 +622,11 @@ class PhaseIV(Phase):
         game.actions = []
 
     def end_phase(self):
-        #self.game.actions.append(ActionEndPhaseIV(self.game, self.game.curr_player))   # don't need; no voluntary actions in phase 4 and actions reset at beginning
         self.game.curr_player = (self.game.curr_player + 1) % self.game.num_players
         super().end_phase()
 
     def update(self, **kwargs):
         game = self.game
-        # self.game.error = None
 
         action = kwargs['action']
         args = kwargs['args']
