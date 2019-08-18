@@ -11,7 +11,7 @@ class ViewServerMixin:
     def update(self, game_state):  # should this be filled out? 'if client is not this object'?
         """Update the game state and send to the client if the client is not
         this object."""
-        pass
+        raise NotImplementedError()
 
 
 class ViewClientMixin:
@@ -19,7 +19,7 @@ class ViewClientMixin:
 
     def render(self):
         """Render the newest version of the view"""
-        pass
+        raise NotImplementedError()
 
 
 class ViewGameState:
@@ -101,6 +101,11 @@ class ViewGameState:
                              discard=game.discard,
                              error=error,
                              available_actions=phase.get_valid_actions())
+
+    def __str__(self):
+        return """ViewGameState(phase:{},owner:{},current_player:{},hand:{},deck_size:{},offering:{})""".format(
+            self.phase, self.owner, self.current_player, self.hand, self.deck_size, self.offering
+        )
 
 
 class ViewPlayer:

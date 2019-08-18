@@ -68,6 +68,9 @@ class ControllerCLI(Controller):
             elif action.lower() in ('next', 'n'):
                 d = {'action': 'next', 'args': None}
 
+            elif action.lower() in ('undo', 'u'):
+                d = {'action': 'undo', 'args': None}
+
             elif isinstance(phase, PhaseI):
                 if action.lower() in ('plant', 'p'):
                     if args is None:

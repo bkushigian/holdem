@@ -1,0 +1,15 @@
+run.sh
+data/adjectives
+data/animals
+src/controller.py
+src/model.py
+src/remote/controller.py
+src/remote/client.py
+src/remote/network.py
+src/remote/states.py
+src/remote/view.py
+src/remote/usersession.py
+src/remote/namegen.py
+src/state.py
+src/view.py
+src/run_client.py
