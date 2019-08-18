@@ -157,9 +157,6 @@ class Phase:
         game = self.game
         fields = game.players[game.curr_player].fields
 
-        # fields_copy = fields.copy()
-        # offering_copy =  game.offering.copy()
-
         open_fields = 0
         matches = 0
 
