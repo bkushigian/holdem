@@ -1,7 +1,7 @@
 from model import Model
 from controller import Controller
 from cli.view import ViewCLI
-from state import *
+from game import *
 
 
 class ControllerCLI(Controller):

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from state import *
+from game import *
 from model import Model
 from cli.view import ViewCLI
 from view import *

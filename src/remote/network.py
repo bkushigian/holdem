@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from model import Model
 from remote.view import ServerView
 
-from state import Player, Game
+from game import Player, Game
 from view import ViewGameState
 
 HEADERSIZE = 16

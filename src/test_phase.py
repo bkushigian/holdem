@@ -1,5 +1,5 @@
 from unittest import TestCase
-from state import *
+from game import *
 
 
 class MockGame:

@@ -1,6 +1,6 @@
 from unittest import TestCase
 from cli.view import ViewCLI
-from state import Player, Card, Game, Phase
+from game import Player, Card, Game, Phase
 
 owner = "Boaty McBoatface"
 

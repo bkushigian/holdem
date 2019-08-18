@@ -3,7 +3,7 @@ from typing import Dict, Any
 from model import Model
 from remote.actor import Actor
 from remote.states import UserSessionState as State
-from state import Game
+from game import Game
 
 
 class UserSession(Actor):

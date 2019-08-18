@@ -1,5 +1,5 @@
 from sys import argv
-from state import Player, Card, Game
+from game import Player, Card, Game
 from cli.view import ViewCLI
 
 

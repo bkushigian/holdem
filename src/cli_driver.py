@@ -1,5 +1,5 @@
 from sys import argv, exit
-from state import *
+from game import *
 from model import Model
 from view import *
 from cli.view import ViewCLI
