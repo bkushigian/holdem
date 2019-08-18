@@ -582,13 +582,6 @@ class State:
         self.actions.append(Action(name, target, desc))
 
 
-class Action:
-    def __init__(self, name: str, target: State, desc=''):
-        self.name = name
-        self.target = target
-        self.desc = desc
-
-
 class StateMachine:
 
     def __init__(self, names, actions):
