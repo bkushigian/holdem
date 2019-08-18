@@ -200,7 +200,6 @@ class Phase:
 
             action_info_list.append((i, card, number, planting_field))
 
-        # game.actions.append(ActionPlantFromOffering(game, game.curr_player, offering_copy, fields_copy))
         game.actions.append(ActionPlantFromOffering(self.game, self.game.curr_player, action_info_list))
 
 
