@@ -1,5 +1,6 @@
 import socket
 import selectors
+import time
 from types import SimpleNamespace
 from typing import Any, Dict
 
@@ -183,6 +184,7 @@ class Client(Actor):
                         self.service_connection(key, mask)
                 if not self.sel.get_map():
                     break
+                time.sleep(0.025)
         except KeyboardInterrupt:
             print("caught keyboard interrupt, exiting")
         finally:
