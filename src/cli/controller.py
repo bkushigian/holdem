@@ -50,7 +50,7 @@ class ControllerCLI(Controller):
 
             d = None    # need?
 
-            if isinstance(self.view.game_state.phase, PhaseGameOver):   # should be updated when add actions to game over
+            if isinstance(self.view.game_state.phase, TwoPlayerPhases.PhaseGameOver):   # should be updated when add actions to game over
                 self.model.report_error(player, 'invalid action for game over')    # ?
                 return True
 
@@ -71,7 +71,7 @@ class ControllerCLI(Controller):
             elif action.lower() in ('undo', 'u'):
                 d = {'action': 'undo', 'args': None}
 
-            elif isinstance(phase, PhaseI):
+            elif isinstance(phase, TwoPlayerPhases.PhaseI):
                 if action.lower() in ('plant', 'p'):
                     if args is None:
                         self.model.report_error(player, 'missing argument to plant')  # ?
@@ -91,7 +91,7 @@ class ControllerCLI(Controller):
                     self.model.report_error(player, 'invalid action for Phase {}'.format(phase))  # ?
                     return True
 
-            elif isinstance(phase, PhaseII):
+            elif isinstance(phase, TwoPlayerPhases.PhaseII):
                 if action.lower() in ('plant', 'p'):
                     d = {'action': 'plant', 'args': None}
                 elif action.lower() in ('discard', 'd'):
@@ -112,7 +112,7 @@ class ControllerCLI(Controller):
                     self.model.report_error(player, 'invalid action for Phase {}'.format(phase))  # ?
                     return True
 
-            elif isinstance(phase, PhaseIII):
+            elif isinstance(phase, TwoPlayerPhases.PhaseIII):
                 if action.lower() in ('plant', 'p'):
                     if args is None:
                         self.model.report_error(player, 'missing argument to plant')  # ?
@@ -134,7 +134,7 @@ class ControllerCLI(Controller):
                     self.model.report_error(player, 'invalid action for Phase {}'.format(phase))  # ?
                     return True
 
-            elif isinstance(phase, PhaseIV):
+            elif isinstance(phase, TwoPlayerPhases.PhaseIV):
                 if action.lower() in ('draw', 'd'):
                     d = {'action': 'draw', 'args': None}
                 elif action.lower() in ('next', 'n'):
