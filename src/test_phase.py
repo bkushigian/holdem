@@ -1,5 +1,6 @@
 from unittest import TestCase
 from game import *
+from phases.pl2 import TwoPlayerPhases
 
 
 class MockGame:

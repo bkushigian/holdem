@@ -1,7 +1,7 @@
 from model import Model
 from controller import Controller
 from cli.view import ViewCLI
-from game import *
+from phases.pl2 import TwoPlayerPhases
 
 
 class ControllerCLI(Controller):

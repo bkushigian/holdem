@@ -1,5 +1,5 @@
 from controller import Controller
-from game import TwoPlayerPhases
+from phases.pl2 import TwoPlayerPhases
 
 
 class ClientControllerCLI(Controller):
