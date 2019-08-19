@@ -1,6 +1,8 @@
 """
 All things statey
 """
+import random
+
 from cards import Card
 from phases import pl2, pl3
 
@@ -23,7 +25,7 @@ class ErrorMessage:
 
 
 class Game:
-    def __init__(self, players):
+    def __init__(self, players, reshuffles=1):
 
         self.num_players = len(players)
         self.players = players  # List of players in order of turns
@@ -31,6 +33,7 @@ class Game:
         self.discard = []
         self.offering = [None, None, None]
         self.curr_player = 0
+        self.reshuffles = reshuffles
 
         self.error = None
         self.actions = []
@@ -81,6 +84,18 @@ class Game:
                 player.coins += coins
                 self.discard.extend([card] * (number - coins))
             player.fields = [None] * len(player.fields)
+
+    def check_deck_not_empty(self):
+        if not self.deck and self.reshuffles > 0:
+
+            self.deck = self.discard
+            random.shuffle(self.deck)
+            self.reshuffles -= 1
+            self.discard = []
+            return True
+
+        return False
+
 
     def deal_to_player(self, player):   # this is only used at start of game. can I change this/phase4 so it can be reused? complicated by gave_over
         if not self.deck:

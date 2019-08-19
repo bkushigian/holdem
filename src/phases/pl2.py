@@ -1,3 +1,5 @@
+import random
+
 from action import ActionEndPhaseI, ActionPlantPhaseII, ActionDiscard
 from phases.phase import Phase
 
@@ -219,7 +221,7 @@ class PhaseIII(Phase):
         game = self.game
         # Draw from deck into offering
         for _ in range(3):
-            if game.deck:
+            if game.check_deck_not_empty():
                 card = game.deck.pop()
                 index = None
                 for i, o in enumerate(game.offering):
@@ -290,6 +292,7 @@ class PhaseIII(Phase):
     def __str__(self):
         return '3'
 
+
 class PhaseIV(Phase):
     def __init__(self, game):
         super().__init__(game)
@@ -301,7 +304,7 @@ class PhaseIV(Phase):
     def start_phase(self):
         game = self.game
         for _ in range(2):
-            if game.deck:
+            if game.check_deck_not_empty():
                 game.players[game.curr_player].hand.insert(0, game.deck.pop())
 
             else:
