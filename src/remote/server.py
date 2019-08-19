@@ -61,4 +61,4 @@ class Server:
                 else:
                     self.service_connection(key, mask)
             self.nm.start_new_games()
-            time.sleep(0)    # Share the love (i.e., the cpu)
+            time.sleep(0.0001)    # Share the love (i.e., the cpu)
