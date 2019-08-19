@@ -94,7 +94,7 @@ class Game:
             self.discard = []
             return True
 
-        return False
+        return bool(self.deck)
 
 
     def deal_to_player(self, player):   # this is only used at start of game. can I change this/phase4 so it can be reused? complicated by gave_over
