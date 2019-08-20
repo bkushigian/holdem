@@ -317,6 +317,7 @@ class PhaseIV(Phase):
                 game.game_over()    # ??? does this get screwed up b/c in for loop?
                 break               # added break due to above
         game.actions = []
+        self.end_phase()
 
     def end_phase(self):
         self.game.curr_player = (self.game.curr_player + 1) % self.game.num_players
