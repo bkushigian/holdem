@@ -24,6 +24,12 @@ class PhaseI(Phase):
     def create_phases(self):
         self.next = PhaseII(self.game)
 
+    def start_phase(self):
+        super().start_phase()
+        game = self.game
+        if not any(game.offering):
+            self.end_phase()
+
     def end_phase(self):
         offering_copy = self.game.offering.copy()
         num = 0
