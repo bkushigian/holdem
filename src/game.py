@@ -25,7 +25,7 @@ class ErrorMessage:
 
 
 class Game:
-    def __init__(self, players, reshuffles=1):
+    def __init__(self, players, reshuffles=0):
 
         self.num_players = len(players)
         self.players = players  # List of players in order of turns
