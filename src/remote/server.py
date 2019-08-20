@@ -57,8 +57,8 @@ class Server:
         s.setblocking(False)
         self.sel.register(s, selectors.EVENT_READ, data=None)
         # conn, addr = s.accept()
-        while True:
-            try:
+        try:
+            while True:
                 events = self.sel.select(timeout=None)
                 for key, mask in events:
                     if key.data is None:
@@ -67,7 +67,7 @@ class Server:
                         self.service_connection(key, mask)
                 self.nm.start_new_games()
                 time.sleep(0.0001)    # Share the love (i.e., the cpu)
-            except KeyboardInterrupt:
-                print("caught keyboard interrupt, exiting")
-            finally:
-                s.close()
+        except KeyboardInterrupt:
+            print("caught keyboard interrupt, exiting")
+        finally:
+            s.close()
