@@ -70,4 +70,5 @@ class Server:
         except KeyboardInterrupt:
             print("caught keyboard interrupt, exiting")
         finally:
+            print("Closing socket...")
             s.close()
