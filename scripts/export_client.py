@@ -14,14 +14,11 @@ try:
     with open('client-closure.txt') as f:
         lines = f.readlines()
         for line in lines:
-            print('line', line)
             line = line.strip()
             trg = osp.join(ROOT, line)
             trg_dir = osp.dirname(trg)
             dst = osp.join(DEST, line)
             dst_dir = osp.dirname(dst)
-            print('trg:', trg, 'dst:', dst, 'trg_dir:', trg_dir, 'dst_dir:',
-                    dst_dir)
             if dst_dir and not osp.exists(dst_dir):
                 os.makedirs(dst_dir)
             print('copying from', trg, 'to', dst)
