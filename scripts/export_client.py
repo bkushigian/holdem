@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 from os import path as osp
 from sys import argv
@@ -11,7 +13,7 @@ try:
     if osp.exists(DEST):
         shutil.rmtree(DEST)
     os.mkdir(DEST)
-    with open('client-closure.txt') as f:
+    with open(osp.join(SCRIPTS, 'client-closure.txt')) as f:
         lines = f.readlines()
         for line in lines:
             line = line.strip()
