@@ -1,3 +1,4 @@
+README.markdown
 run.sh
 data/adjectives
 data/animals
