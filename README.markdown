@@ -1,5 +1,8 @@
 # README
 
+## Requirements
+Beano is written in Python 3.6 though any Python 3.4+ should work (we hope!)
+
 ## Connecting to a Game
 Beano needs to be running on a server (either local or remote) to play.
 
