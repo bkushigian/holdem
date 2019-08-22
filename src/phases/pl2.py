@@ -309,14 +309,13 @@ class PhaseIV(Phase):
 
     def start_phase(self):
         game = self.game
+        game.actions = []
         for _ in range(2):
             if game.check_deck_not_empty():
                 game.players[game.curr_player].hand.insert(0, game.deck.pop())
-
             else:
-                game.game_over()    # ??? does this get screwed up b/c in for loop?
-                break               # added break due to above
-        game.actions = []
+                game.game_over()
+                return
         self.end_phase()
 
     def end_phase(self):
