@@ -2,3 +2,4 @@
 venv
 .idea/
 beano-public/
+*.zip
