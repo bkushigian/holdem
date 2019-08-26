@@ -15,7 +15,8 @@ class Model:
 
     def update(self, **kwargs):
         self.game.phase.update(**kwargs)
-        self.update_views()             # ???
+        self.update_views()
+        self.game.error = None      # TODO: figure out if this works
 
     def report_error(self, player, msg):
         self.game.report_error(player, msg)
